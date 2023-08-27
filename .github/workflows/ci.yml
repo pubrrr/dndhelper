@@ -20,7 +20,7 @@ jobs:
             server/target/
           key: cargo-build-${{ hashFiles('Cargo.toml') }}
       - name: Install ALSA
-        run: sudo apt-get install alsa-base
+        run: sudo apt-get install libasound2-dev
       - name: Build
         run: cargo build --verbose
       - name: Run tests
