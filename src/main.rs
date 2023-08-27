@@ -1,5 +1,5 @@
 use bevy::prelude::{
-    default, info, App, Assets, Camera, Camera2dBundle, Color, ColorMaterial, ColorMesh2dBundle,
+    default, App, Assets, Camera, Camera2dBundle, Color, ColorMaterial, ColorMesh2dBundle,
     Commands, Component, Entity, GlobalTransform, Handle, Input, Mesh, MouseButton, PluginGroup,
     Query, Res, ResMut, Resource, Startup, Transform, Update, Vec2, Vec3, WindowPlugin, With,
 };
@@ -49,12 +49,7 @@ fn setup_hex_grid(
 
     Hex::ZERO
         .spiral_range(0..5)
-        .map(|hex_coord| {
-            let vec2 = hex_layout.hex_to_world_pos(hex_coord);
-            info!("hex_coord: {hex_coord:?}, world_coord: {vec2}");
-
-            vec2
-        })
+        .map(|hex_coord| hex_layout.hex_to_world_pos(hex_coord))
         .for_each(|world_coord| {
             commands.spawn((
                 ColorMesh2dBundle {
