@@ -19,6 +19,8 @@ jobs:
             ~/.cargo/registry/cache/
             server/target/
           key: cargo-build-${{ hashFiles('Cargo.toml') }}
+      - name: Install ALSA
+        run: sudo apt-get install alsa-base
       - name: Build
         run: cargo build --verbose
       - name: Run tests
