@@ -2,16 +2,20 @@ use bevy::asset::AssetServer;
 use bevy::prelude::{
     default, App, Assets, Camera, Camera2dBundle, Color, ColorMaterial, ColorMesh2dBundle,
     Commands, Component, Entity, GlobalTransform, Handle, Image, Input, Mesh, MouseButton,
-    PluginGroup, PostUpdate, Query, Res, ResMut, Resource, SpriteBundle, Startup, Transform,
-    Update, Vec2, Vec3, WindowPlugin, With,
+    PluginGroup, PostStartup, PostUpdate, Query, Res, ResMut, Resource, SpriteBundle, Startup,
+    Transform, Update, Vec2, Vec3, WindowPlugin, With, Without,
 };
 use bevy::render::mesh::{Indices, PrimitiveTopology};
+use bevy::utils::HashMap;
 use bevy::window::PrimaryWindow;
 use bevy::DefaultPlugins;
 use bevy_asset_loader::prelude::{AssetCollection, AssetCollectionApp};
 use bevy_egui::egui::Window;
 use bevy_egui::{EguiContexts, EguiPlugin};
 use hexx::{Hex, HexLayout, PlaneMeshBuilder};
+
+type UnitFilter = (With<UnitMarker>, Without<HexMarker>);
+type HexFilter = (With<HexMarker>, Without<UnitMarker>);
 
 fn main() {
     App::new()
@@ -26,9 +30,13 @@ fn main() {
             EguiPlugin,
         ))
         .init_collection::<ImageAssets>()
-        .add_systems(Startup, (setup_camera, setup_hex_grid, setup_units))
+        .add_systems(
+            Startup,
+            (setup_camera, setup_hex_grid, setup_team_resources),
+        )
+        .add_systems(PostStartup, setup_teams)
         .add_systems(Update, (ui_system, handle_input))
-        .add_systems(PostUpdate, update_transform_from_hex)
+        .add_systems(PostUpdate, (update_transform_from_hex, update_hex_colors))
         .init_resource::<MyResource>()
         .init_resource::<SelectedUnitResource>()
         .run();
@@ -36,6 +44,31 @@ fn main() {
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
+}
+
+fn setup_team_resources(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
+    let red_hex_color = materials.add(Color::RED.into());
+    let blue_hex_color = materials.add(Color::BLUE.into());
+
+    commands.insert_resource(TeamResources {
+        materials: [
+            (
+                Team::Red,
+                TeamMaterial {
+                    hex_color: red_hex_color,
+                },
+            ),
+            (
+                Team::Blue,
+                TeamMaterial {
+                    hex_color: blue_hex_color,
+                },
+            ),
+        ]
+        .iter()
+        .cloned()
+        .collect(),
+    });
 }
 
 fn setup_hex_grid(
@@ -51,22 +84,21 @@ fn setup_hex_grid(
     let mesh = meshes.add(hexagonal_plane(&hex_layout));
 
     let default_hex_color = materials.add(Color::BLACK.into());
-    let highlight_color = materials.add(Color::RED.into());
+    let highlight_color = materials.add(Color::GREEN.into());
 
-    Hex::ZERO
-        .spiral_range(0..5)
-        .map(|hex_coord| hex_layout.hex_to_world_pos(hex_coord))
-        .for_each(|world_coord| {
-            commands
-                .spawn(ColorMesh2dBundle {
-                    mesh: mesh.clone().into(),
-                    material: default_hex_color.clone(),
-                    transform: Transform::from_xyz(world_coord.x, world_coord.y, 0.)
-                        .with_scale(Vec3::splat(0.9)),
-                    ..default()
-                })
-                .insert(HexMarker);
-        });
+    Hex::ZERO.spiral_range(0..5).for_each(|hex_coord| {
+        let world_coord = hex_layout.hex_to_world_pos(hex_coord);
+        commands
+            .spawn(ColorMesh2dBundle {
+                mesh: mesh.clone().into(),
+                material: default_hex_color.clone(),
+                transform: Transform::from_xyz(world_coord.x, world_coord.y, 0.)
+                    .with_scale(Vec3::splat(0.9)),
+                ..default()
+            })
+            .insert(HexComponent(hex_coord))
+            .insert(HexMarker);
+    });
 
     commands.insert_resource(HexResources {
         hex_layout,
@@ -75,24 +107,28 @@ fn setup_hex_grid(
     });
 }
 
-fn setup_units(mut commands: Commands, image_assets: Res<ImageAssets>) {
-    commands
-        .spawn(SpriteBundle {
-            texture: image_assets.manf.clone(),
-            transform: Transform::default().with_scale(Vec3::splat(0.5)),
-            ..default()
-        })
-        .insert(UnitMarker)
-        .insert(HexComponent(Hex::new(0, 0)));
+fn setup_teams(mut commands: Commands, image_assets: Res<ImageAssets>) {
+    for i in 0..5 {
+        commands
+            .spawn(SpriteBundle {
+                texture: image_assets.manf.clone(),
+                transform: Transform::default().with_scale(Vec3::splat(0.5)),
+                ..default()
+            })
+            .insert(UnitMarker)
+            .insert(Team::Red)
+            .insert(HexComponent(Hex::new(4, i - 4)));
 
-    commands
-        .spawn(SpriteBundle {
-            texture: image_assets.tree.clone(),
-            transform: Transform::default().with_scale(Vec3::splat(0.5)),
-            ..default()
-        })
-        .insert(UnitMarker)
-        .insert(HexComponent(Hex::new(1, 0)));
+        commands
+            .spawn(SpriteBundle {
+                texture: image_assets.tree.clone(),
+                transform: Transform::default().with_scale(Vec3::splat(0.5)),
+                ..default()
+            })
+            .insert(UnitMarker)
+            .insert(Team::Blue)
+            .insert(HexComponent(Hex::new(-4, i)));
+    }
 }
 
 fn hexagonal_plane(hex_layout: &HexLayout) -> Mesh {
@@ -106,12 +142,42 @@ fn hexagonal_plane(hex_layout: &HexLayout) -> Mesh {
 }
 
 fn update_transform_from_hex(
-    mut hex_entities: Query<(&HexComponent, &mut Transform)>,
+    mut hex_entities: Query<(&HexComponent, &mut Transform), Without<HexMarker>>,
     hex_resources: Res<HexResources>,
 ) {
     hex_entities.for_each_mut(|(hex, mut transform)| {
         let wold_pos = hex_resources.hex_layout.hex_to_world_pos(hex.0);
         transform.translation = Vec3::new(wold_pos.x, wold_pos.y, 0.);
+    });
+}
+
+fn update_hex_colors(
+    units: Query<(Entity, &HexComponent, &Team), UnitFilter>,
+    mut hex_entities: Query<(&HexComponent, &mut Handle<ColorMaterial>), HexFilter>,
+    team_resources: Res<TeamResources>,
+    hex_resources: Res<HexResources>,
+    selected_unit_resource: Res<SelectedUnitResource>,
+) {
+    let mut hex_to_color_map = HashMap::from_iter(
+        units
+            .iter()
+            .map(|(_, hex, team)| (hex.0, team_resources.materials[team].hex_color.clone())),
+    );
+
+    if let Some(selected_unit) = &selected_unit_resource.selected_unit {
+        let selected_unit_hex = units
+            .get_component::<HexComponent>(*selected_unit)
+            .unwrap()
+            .0;
+        hex_to_color_map.insert(selected_unit_hex, hex_resources.highlight_color.clone());
+    }
+
+    hex_entities.for_each_mut(|(hex, mut material)| {
+        let color = hex_to_color_map
+            .get(&hex.0)
+            .cloned()
+            .unwrap_or_else(|| hex_resources.default_hex_color.clone());
+        *material = color;
     });
 }
 
@@ -127,16 +193,13 @@ fn ui_system(mut contexts: EguiContexts, mut resource: ResMut<MyResource>) {
     });
 }
 
-#[allow(clippy::too_many_arguments)]
 fn handle_input(
-    mut commands: Commands,
     buttons: Res<Input<MouseButton>>,
     hex_resources: Res<HexResources>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     windows: Query<&bevy::window::Window, With<PrimaryWindow>>,
     cameras: Query<(&Camera, &GlobalTransform)>,
-    mut units: Query<(Entity, &mut HexComponent), With<UnitMarker>>,
-    hexes: Query<(Entity, &GlobalTransform), With<HexMarker>>,
+    mut units: Query<(Entity, &mut HexComponent), UnitFilter>,
 ) {
     let window = windows.single();
     let (camera, cam_transform) = cameras.single();
@@ -149,45 +212,14 @@ fn handle_input(
             return;
         }
 
-        let Some((clicked_hex_entity, _)) = hexes.iter().find(|(_, global_transform)| {
-            hex_resources.hex_layout.world_pos_to_hex(Vec2::new(
-                global_transform.translation().x,
-                global_transform.translation().y,
-            )) == hex_cursor_position
-        }) else {
-            return;
-        };
-
         if let Some((entity, _)) = units.iter().find(|(_, hex)| hex.0 == hex_cursor_position) {
-            if let Some(selected_unit) = &selected_unit_resource.selected_unit {
-                if selected_unit.hex_entity != clicked_hex_entity {
-                    commands
-                        .entity(selected_unit.hex_entity)
-                        .insert(hex_resources.default_hex_color.clone());
-                }
-            }
-            commands
-                .entity(clicked_hex_entity)
-                .insert(hex_resources.highlight_color.clone());
-
-            selected_unit_resource.selected_unit = Some(SelectedUnit {
-                unit_entity: entity,
-                hex_entity: clicked_hex_entity,
-            });
+            selected_unit_resource.selected_unit = Some(entity);
             return;
         }
 
-        if let Some(selected_unit) = &mut selected_unit_resource.selected_unit {
-            if let Ok((_, mut hex)) = units.get_mut(selected_unit.unit_entity) {
-                hex.0 = hex_cursor_position;
-                commands
-                    .entity(clicked_hex_entity)
-                    .insert(hex_resources.highlight_color.clone());
-                commands
-                    .entity(selected_unit.hex_entity)
-                    .insert(hex_resources.default_hex_color.clone());
-                selected_unit.hex_entity = clicked_hex_entity;
-            }
+        if let Some(selected_unit) = selected_unit_resource.selected_unit {
+            let (_, mut hex) = units.get_mut(selected_unit).unwrap();
+            hex.0 = hex_cursor_position;
         }
     }
 }
@@ -206,11 +238,7 @@ struct HexResources {
 
 #[derive(Resource, Default)]
 struct SelectedUnitResource {
-    selected_unit: Option<SelectedUnit>,
-}
-struct SelectedUnit {
-    unit_entity: Entity,
-    hex_entity: Entity,
+    selected_unit: Option<Entity>,
 }
 
 #[derive(Component)]
@@ -228,4 +256,20 @@ struct ImageAssets {
     manf: Handle<Image>,
     #[asset(path = "tree2.png")]
     tree: Handle<Image>,
+}
+
+#[derive(Resource)]
+struct TeamResources {
+    materials: HashMap<Team, TeamMaterial>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
+enum Team {
+    Red,
+    Blue,
+}
+
+#[derive(Clone)]
+struct TeamMaterial {
+    hex_color: Handle<ColorMaterial>,
 }
