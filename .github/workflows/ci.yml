@@ -19,6 +19,8 @@ jobs:
             ~/.cargo/registry/cache/
             server/target/
           key: cargo-build-${{ hashFiles('Cargo.toml') }}
+      - name: Install system dependencies
+        run: sudo apt-get install libasound2-dev libudev-dev
       - name: Build
         run: cargo build --verbose
       - name: Run tests
@@ -36,6 +38,8 @@ jobs:
             ~/.cargo/registry/cache/
             server/target/
           key: cargo-build-${{ hashFiles('Cargo.toml') }}
+      - name: Install system dependencies
+        run: sudo apt-get install libasound2-dev libudev-dev
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal

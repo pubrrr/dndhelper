@@ -154,7 +154,9 @@ fn handle_input(
                 global_transform.translation().x,
                 global_transform.translation().y,
             )) == hex_cursor_position
-        }) else { return };
+        }) else {
+            return;
+        };
 
         if let Some((entity, _)) = units.iter().find(|(_, hex)| hex.0 == hex_cursor_position) {
             if let Some(selected_unit) = &selected_unit_resource.selected_unit {
