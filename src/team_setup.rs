@@ -1,11 +1,12 @@
-use std::fmt::{Display, Formatter};
-
+use crate::combat::AttackConfig;
+use crate::combat::HealthPoints;
 use bevy::prelude::{
     default, Assets, Color, ColorMaterial, Commands, Component, Handle, Res, ResMut, Resource,
     SpriteBundle, Transform, Vec3,
 };
 use bevy::utils::HashMap;
 use hexx::Hex;
+use std::fmt::{Display, Formatter};
 
 use crate::action_points::ActionPoints;
 use crate::common_components::UnitMarker;
@@ -73,6 +74,8 @@ pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) 
             .insert(UnitMarker)
             .insert(Team::Red)
             .insert(ActionPoints::with_max(3))
+            .insert(HealthPoints::new(3))
+            .insert(AttackConfig { attack: 1 })
             .insert(HexComponent(Hex::new(4, i - 4)));
 
         commands
@@ -84,6 +87,8 @@ pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) 
             .insert(UnitMarker)
             .insert(Team::Blue)
             .insert(ActionPoints::with_max(3))
+            .insert(HealthPoints::new(3))
+            .insert(AttackConfig { attack: 1 })
             .insert(HexComponent(Hex::new(-4, i)));
     }
 }

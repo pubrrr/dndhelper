@@ -1,4 +1,3 @@
-use crate::action_points::reset_action_points;
 use bevy::asset::AssetServer;
 use bevy::prelude::{
     default, in_state, App, Camera2dBundle, Commands, Entity, Handle, Image, IntoSystemConfigs,
@@ -9,9 +8,11 @@ use bevy::DefaultPlugins;
 use bevy_asset_loader::prelude::{AssetCollection, AssetCollectionApp};
 use bevy_egui::EguiPlugin;
 
+use crate::action_points::reset_action_points;
 use crate::clicked_hex::{update_clicked_hex, ClickedHex};
+use crate::combat::{despawn_dead_units, handle_combat, CombatantsResource};
 use crate::egui::ui_system;
-use crate::game_state::{round_end_system, ActiveTeam, GameState};
+use crate::game_state::{round_end_system, ActiveTeam, GameState, RoundState};
 use crate::hex::setup_hex_grid;
 use crate::input_system::handle_input;
 use crate::post_update_systems::{update_hex_colors, update_transform_from_hex};
@@ -19,6 +20,7 @@ use crate::team_setup::{setup_team_resources, setup_team_units};
 
 mod action_points;
 mod clicked_hex;
+mod combat;
 mod common_components;
 mod egui;
 mod game_state;
@@ -41,6 +43,7 @@ fn main() {
         ))
         .init_collection::<ImageAssets>()
         .add_state::<GameState>()
+        .add_state::<RoundState>()
         .add_systems(
             Startup,
             (setup_camera, setup_hex_grid, setup_team_resources),
@@ -48,13 +51,24 @@ fn main() {
         .add_systems(PostStartup, setup_team_units)
         .add_systems(
             PreUpdate,
-            update_clicked_hex.run_if(in_state(GameState::Round)),
+            update_clicked_hex.run_if(in_state(RoundState::Moving)),
         )
         .add_systems(
             Update,
-            (ui_system, handle_input.run_if(in_state(GameState::Round))),
+            (
+                ui_system,
+                handle_input.run_if(in_state(RoundState::Moving)),
+                handle_combat.run_if(in_state(RoundState::Combat)),
+            ),
         )
-        .add_systems(PostUpdate, (update_transform_from_hex, update_hex_colors))
+        .add_systems(
+            PostUpdate,
+            (
+                update_transform_from_hex,
+                update_hex_colors,
+                despawn_dead_units,
+            ),
+        )
         .add_systems(
             OnEnter(GameState::RoundEnd),
             (round_end_system, reset_action_points),
@@ -62,6 +76,7 @@ fn main() {
         .init_resource::<ActiveTeam>()
         .init_resource::<ClickedHex>()
         .init_resource::<SelectedUnitResource>()
+        .init_resource::<CombatantsResource>()
         .run();
 }
 

@@ -10,6 +10,13 @@ pub enum GameState {
     RoundEnd,
 }
 
+#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
+pub enum RoundState {
+    #[default]
+    Moving,
+    Combat,
+}
+
 #[derive(Resource)]
 pub struct ActiveTeam(pub Team);
 
@@ -20,7 +27,8 @@ impl Default for ActiveTeam {
 }
 
 pub fn round_end_system(
-    mut round_state: ResMut<NextState<GameState>>,
+    mut game_state: ResMut<NextState<GameState>>,
+    mut round_state: ResMut<NextState<RoundState>>,
     mut active_team: ResMut<ActiveTeam>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
 ) {
@@ -33,5 +41,6 @@ pub fn round_end_system(
 
     active_team.0 = next_team;
 
-    round_state.set(GameState::Round);
+    game_state.set(GameState::Round);
+    round_state.set(RoundState::Moving);
 }
