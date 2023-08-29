@@ -7,6 +7,7 @@ use bevy::prelude::{
 use bevy::utils::HashMap;
 use hexx::Hex;
 
+use crate::action_points::ActionPoints;
 use crate::common_components::UnitMarker;
 use crate::hex::HexComponent;
 use crate::ImageAssets;
@@ -71,6 +72,7 @@ pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) 
             })
             .insert(UnitMarker)
             .insert(Team::Red)
+            .insert(ActionPoints::with_max(3))
             .insert(HexComponent(Hex::new(4, i - 4)));
 
         commands
@@ -81,6 +83,7 @@ pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) 
             })
             .insert(UnitMarker)
             .insert(Team::Blue)
+            .insert(ActionPoints::with_max(3))
             .insert(HexComponent(Hex::new(-4, i)));
     }
 }

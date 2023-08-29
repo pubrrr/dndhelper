@@ -1,3 +1,4 @@
+use crate::action_points::reset_action_points;
 use bevy::asset::AssetServer;
 use bevy::prelude::{
     default, in_state, App, Camera2dBundle, Commands, Entity, Handle, Image, IntoSystemConfigs,
@@ -16,6 +17,7 @@ use crate::input_system::handle_input;
 use crate::post_update_systems::{update_hex_colors, update_transform_from_hex};
 use crate::team_setup::{setup_team_resources, setup_team_units};
 
+mod action_points;
 mod clicked_hex;
 mod common_components;
 mod egui;
@@ -53,7 +55,10 @@ fn main() {
             (ui_system, handle_input.run_if(in_state(GameState::Round))),
         )
         .add_systems(PostUpdate, (update_transform_from_hex, update_hex_colors))
-        .add_systems(OnEnter(GameState::RoundEnd), round_end_system)
+        .add_systems(
+            OnEnter(GameState::RoundEnd),
+            (round_end_system, reset_action_points),
+        )
         .init_resource::<ActiveTeam>()
         .init_resource::<ClickedHex>()
         .init_resource::<SelectedUnitResource>()

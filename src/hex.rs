@@ -15,6 +15,7 @@ pub struct HexComponent(pub Hex);
 pub struct HexResources {
     pub hex_layout: HexLayout,
     pub default_hex_color: Handle<ColorMaterial>,
+    pub not_reachable_hex_color: Handle<ColorMaterial>,
     pub highlight_color: Handle<ColorMaterial>,
 }
 
@@ -32,6 +33,7 @@ pub fn setup_hex_grid(
 
     let default_hex_color = materials.add(Color::BLACK.into());
     let highlight_color = materials.add(Color::GREEN.into());
+    let not_reachable_hex_color = materials.add(Color::DARK_GRAY.into());
 
     Hex::ZERO.spiral_range(0..5).for_each(|hex_coord| {
         let world_coord = hex_layout.hex_to_world_pos(hex_coord);
@@ -50,6 +52,7 @@ pub fn setup_hex_grid(
     commands.insert_resource(HexResources {
         hex_layout,
         default_hex_color,
+        not_reachable_hex_color,
         highlight_color,
     });
 }
