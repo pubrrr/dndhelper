@@ -1,38 +1,31 @@
-use bevy::prelude::{
-    Camera, Entity, GlobalTransform, Input, MouseButton, Query, Res, ResMut, With,
-};
-use bevy::window::PrimaryWindow;
+use bevy::prelude::{Entity, Query, Res, ResMut};
 
+use crate::clicked_hex::ClickedHex;
 use crate::common_components::UnitFilter;
-use crate::hex::{HexComponent, HexResources};
+use crate::game_state::ActiveTeam;
+use crate::hex::HexComponent;
+use crate::team_setup::Team;
 use crate::SelectedUnitResource;
 
 pub fn handle_input(
-    buttons: Res<Input<MouseButton>>,
-    hex_resources: Res<HexResources>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
-    windows: Query<&bevy::window::Window, With<PrimaryWindow>>,
-    cameras: Query<(&Camera, &GlobalTransform)>,
-    mut units: Query<(Entity, &mut HexComponent), UnitFilter>,
+    mut units: Query<(Entity, &mut HexComponent, &Team), UnitFilter>,
+    active_team: Res<ActiveTeam>,
+    clicked_hex: Res<ClickedHex>,
 ) {
-    let window = windows.single();
-    let (camera, cam_transform) = cameras.single();
-    if let Some(hex_cursor_position) = window
-        .cursor_position()
-        .and_then(|p| camera.viewport_to_world_2d(cam_transform, p))
-        .map(|position| hex_resources.hex_layout.world_pos_to_hex(position))
-    {
-        if !buttons.just_pressed(MouseButton::Left) {
-            return;
-        }
-
-        if let Some((entity, _)) = units.iter().find(|(_, hex)| hex.0 == hex_cursor_position) {
-            selected_unit_resource.selected_unit = Some(entity);
+    if let Some(hex_cursor_position) = clicked_hex.0 {
+        if let Some((entity, _, team)) = units
+            .iter()
+            .find(|(_, hex, _)| hex.0 == hex_cursor_position)
+        {
+            if &active_team.0 == team {
+                selected_unit_resource.selected_unit = Some(entity);
+            }
             return;
         }
 
         if let Some(selected_unit) = selected_unit_resource.selected_unit {
-            let (_, mut hex) = units.get_mut(selected_unit).unwrap();
+            let (_, mut hex, _) = units.get_mut(selected_unit).unwrap();
             hex.0 = hex_cursor_position;
         }
     }
