@@ -9,4 +9,6 @@ edition = "2021"
 bevy = "0.11.2"
 bevy_asset_loader = "0.17.0"
 bevy_egui = "0.21.0"
+getrandom = {version = "0.2.10", features = ["js"]}
 hexx = "0.10.0"
+rand = "0.8.5"

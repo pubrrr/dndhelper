@@ -1,12 +1,13 @@
 use std::cmp::max;
 
-use crate::action_points::ActionPoints;
 use bevy::prelude::{
-    warn, Changed, Commands, Component, DespawnRecursiveExt, Entity, NextState, Query, ResMut,
-    Resource,
+    debug, warn, Changed, Commands, Component, DespawnRecursiveExt, Entity, NextState, Query,
+    ResMut, Resource,
 };
 
+use crate::action_points::ActionPoints;
 use crate::game_state::RoundState;
+use crate::util::dice::Dice;
 
 #[derive(Component, Debug)]
 pub struct HealthPoints {
@@ -25,8 +26,11 @@ impl HealthPoints {
 }
 
 #[derive(Component, Debug)]
-pub struct AttackConfig {
+pub struct CombatConfig {
+    /// damage to health points if defense fails
     pub attack: usize,
+    /// Chance to defend in a D20 dice roll
+    pub defense: usize,
 }
 
 #[derive(Resource, Debug, Default)]
@@ -41,7 +45,7 @@ pub enum CombatantsResource {
 
 pub fn handle_combat(
     mut next_round_state: ResMut<NextState<RoundState>>,
-    mut units: Query<(&AttackConfig, &mut HealthPoints, &mut ActionPoints)>,
+    mut units: Query<(&CombatConfig, &mut HealthPoints, &mut ActionPoints)>,
     mut combatants_resource: ResMut<CombatantsResource>,
 ) {
     next_round_state.set(RoundState::Moving);
@@ -61,8 +65,16 @@ pub fn handle_combat(
     }
     action_points.left -= 1;
     let attack_points = attacker_config.attack;
-    let (_, mut defender_health_points, _) = units.get_mut(defender).unwrap();
-    defender_health_points.left = max(defender_health_points.left - attack_points, 0);
+    let (defender_config, mut defender_health_points, _) = units.get_mut(defender).unwrap();
+
+    let dice_roll = Dice::<20>::roll();
+    if (dice_roll as usize) < defender_config.defense {
+        debug!(
+            "Successful combat dice roll: {dice_roll} against {}",
+            defender_config.defense
+        );
+        defender_health_points.left = max(defender_health_points.left - attack_points, 0);
+    }
 
     *combatants_resource = CombatantsResource::NoCombat;
 }

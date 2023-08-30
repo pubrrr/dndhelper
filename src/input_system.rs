@@ -1,4 +1,3 @@
-use bevy::log::info;
 use bevy::prelude::{Entity, NextState, Query, Res, ResMut};
 
 use crate::action_points::ActionPoints;
@@ -41,7 +40,6 @@ pub fn handle_input(
             .unsigned_distance_to(selected_unit_hex.0);
         if distance == 1 {
             next_round_state.set(RoundState::Combat);
-            info!("attacker: {selected_unit:?}, defender: {clicked_entity:?}");
             *combatants_resource = CombatantsResource::Combatants {
                 attacker: selected_unit,
                 defender: clicked_entity,

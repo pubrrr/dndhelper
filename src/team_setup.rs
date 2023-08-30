@@ -1,4 +1,4 @@
-use crate::combat::AttackConfig;
+use crate::combat::CombatConfig;
 use crate::combat::HealthPoints;
 use bevy::prelude::{
     default, Assets, Color, ColorMaterial, Commands, Component, Handle, Res, ResMut, Resource,
@@ -75,7 +75,10 @@ pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) 
             .insert(Team::Red)
             .insert(ActionPoints::with_max(3))
             .insert(HealthPoints::new(3))
-            .insert(AttackConfig { attack: 1 })
+            .insert(CombatConfig {
+                attack: 1,
+                defense: 11,
+            })
             .insert(HexComponent(Hex::new(4, i - 4)));
 
         commands
@@ -88,7 +91,10 @@ pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) 
             .insert(Team::Blue)
             .insert(ActionPoints::with_max(3))
             .insert(HealthPoints::new(3))
-            .insert(AttackConfig { attack: 1 })
+            .insert(CombatConfig {
+                attack: 1,
+                defense: 11,
+            })
             .insert(HexComponent(Hex::new(-4, i)));
     }
 }

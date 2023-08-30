@@ -28,6 +28,7 @@ mod hex;
 mod input_system;
 mod post_update_systems;
 mod team_setup;
+mod util;
 
 fn main() {
     App::new()
