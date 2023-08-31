@@ -17,10 +17,11 @@ use crate::health_bar::{
 };
 use crate::hex::setup_hex_grid;
 use crate::hovered_hex::{update_hovered_hex, HoveredHex};
-use crate::input_system::{update_hovered_unit, update_selected_unit};
+use crate::input_system::{handle_selected_unit_input, update_hovered_unit};
 use crate::post_update_systems::update_transform_from_hex;
 use crate::selected_unit::{
-    reset_selected_unit, update_hex_colors, update_selected_unit_hex, SelectedUnitResource,
+    reset_selected_unit, update_hex_overlay, update_reachable_hexes_cache,
+    update_selected_unit_hex, SelectedUnitResource,
 };
 use crate::team_setup::setup_team_units;
 
@@ -67,7 +68,7 @@ fn main() {
                 ui_system,
                 add_health_bars,
                 reset_selected_unit,
-                update_selected_unit.run_if(in_state(RoundState::Moving)),
+                handle_selected_unit_input.run_if(in_state(RoundState::Moving)),
                 update_hovered_unit.run_if(in_state(RoundState::Moving)),
                 handle_combat.run_if(in_state(RoundState::Combat)),
             ),
@@ -77,7 +78,8 @@ fn main() {
             (
                 update_transform_from_hex,
                 update_selected_unit_hex,
-                update_hex_colors,
+                update_reachable_hexes_cache,
+                update_hex_overlay,
                 despawn_dead_units,
                 update_health_bar_positions,
                 update_health_bar_size,

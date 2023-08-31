@@ -32,7 +32,7 @@ pub fn round_end_system(
     mut active_team: ResMut<ActiveTeam>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
 ) {
-    selected_unit_resource.selected_unit = None;
+    selected_unit_resource.set_selected_unit(None);
 
     let next_team = match active_team.0 {
         Team::Red => Team::Blue,

@@ -11,3 +11,12 @@ pub enum MovementCost {
     Impassable,
     Passable(usize),
 }
+
+impl MovementCost {
+    pub fn get_modified_algorithm_cost(&self) -> Option<u32> {
+        match self {
+            MovementCost::Impassable => None,
+            MovementCost::Passable(cost) => Some(*cost as u32 - 1),
+        }
+    }
+}

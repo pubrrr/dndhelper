@@ -22,7 +22,7 @@ pub fn ui_system(
 
         let unit_to_show = hovered_unit_resource
             .0
-            .or(selected_unit_resource.selected_unit);
+            .or(selected_unit_resource.selected_unit());
         if let Some(selected_unit) = unit_to_show {
             let (action_points, health_points, team) = units.get(selected_unit).unwrap();
             ui.label(format!("Owner: {team}"));

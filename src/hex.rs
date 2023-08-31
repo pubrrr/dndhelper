@@ -40,7 +40,7 @@ pub fn setup_hex_grid(
 
     let mesh = meshes.add(hexagonal_plane(&hex_layout));
 
-    let not_reachable_overlay_color = materials.add(Color::DARK_GRAY.with_a(0.5).into());
+    let not_reachable_overlay_color = materials.add(Color::DARK_GRAY.with_a(0.7).into());
 
     let terrain_map = build_terrain_map(&mut materials);
 
