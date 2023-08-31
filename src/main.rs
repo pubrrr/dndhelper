@@ -9,7 +9,6 @@ use bevy_asset_loader::prelude::{AssetCollection, AssetCollectionApp};
 use bevy_egui::EguiPlugin;
 
 use crate::action_points::reset_action_points;
-use crate::clicked_hex::{update_clicked_hex, ClickedHex};
 use crate::combat::{despawn_dead_units, handle_combat, CombatantsResource};
 use crate::egui::ui_system;
 use crate::game_state::{round_end_system, ActiveTeam, GameState, RoundState};
@@ -17,18 +16,19 @@ use crate::health_bar::{
     add_health_bars, update_health_bar_positions, update_health_bar_size, HealthBarResources,
 };
 use crate::hex::setup_hex_grid;
-use crate::input_system::handle_input;
+use crate::hovered_hex::{update_hovered_hex, HoveredHex};
+use crate::input_system::{update_hovered_unit, update_selected_unit};
 use crate::post_update_systems::{update_hex_colors, update_transform_from_hex};
 use crate::team_setup::{setup_team_resources, setup_team_units};
 
 mod action_points;
-mod clicked_hex;
 mod combat;
 mod common_components;
 mod egui;
 mod game_state;
 mod health_bar;
 mod hex;
+mod hovered_hex;
 mod input_system;
 mod post_update_systems;
 mod team_setup;
@@ -56,14 +56,15 @@ fn main() {
         .add_systems(PostStartup, setup_team_units)
         .add_systems(
             PreUpdate,
-            update_clicked_hex.run_if(in_state(RoundState::Moving)),
+            update_hovered_hex.run_if(in_state(RoundState::Moving)),
         )
         .add_systems(
             Update,
             (
                 ui_system,
                 add_health_bars,
-                handle_input.run_if(in_state(RoundState::Moving)),
+                update_selected_unit.run_if(in_state(RoundState::Moving)),
+                update_hovered_unit.run_if(in_state(RoundState::Moving)),
                 handle_combat.run_if(in_state(RoundState::Combat)),
             ),
         )
@@ -82,8 +83,9 @@ fn main() {
             (round_end_system, reset_action_points),
         )
         .init_resource::<ActiveTeam>()
-        .init_resource::<ClickedHex>()
+        .init_resource::<HoveredHex>()
         .init_resource::<SelectedUnitResource>()
+        .init_resource::<HoveredUnitResource>()
         .init_resource::<CombatantsResource>()
         .init_resource::<HealthBarResources>()
         .run();
@@ -97,6 +99,9 @@ fn setup_camera(mut commands: Commands) {
 pub struct SelectedUnitResource {
     selected_unit: Option<Entity>,
 }
+
+#[derive(Resource, Default)]
+pub struct HoveredUnitResource(pub Option<Entity>);
 
 #[derive(AssetCollection, Resource)]
 pub struct ImageAssets {

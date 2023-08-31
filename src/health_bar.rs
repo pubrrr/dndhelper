@@ -100,7 +100,7 @@ pub fn add_health_bars(
 
 pub fn update_health_bar_positions(
     mut commands: Commands,
-    entities_with_health: Query<
+    #[allow(clippy::type_complexity)] entities_with_health: Query<
         &Transform,
         (
             With<HealthPoints>,
@@ -122,7 +122,7 @@ pub fn update_health_bar_positions(
             }
         };
 
-        let mut transform = unit_transform.translation.clone();
+        let mut transform = unit_transform.translation;
         transform.y -= HEX_RADIUS / 2.;
         transform.z = 100.;
         health_bar_transform.translation = transform;
