@@ -8,6 +8,7 @@ use bevy::sprite::Mesh2dHandle;
 
 use crate::combat::HealthPoints;
 use crate::hex::HEX_RADIUS;
+use crate::z_ordering::ZOrdering;
 
 const MAX_Y_SCALE: f32 = 0.9;
 
@@ -56,11 +57,8 @@ pub fn add_health_bars(
             .spawn((
                 HealthBarForEntity { entity },
                 SpriteBundle {
-                    transform: Transform::from_xyz(0., 0., 100.).with_scale(Vec3::new(
-                        HEX_RADIUS,
-                        HEX_RADIUS / 4.,
-                        1.,
-                    )),
+                    transform: Transform::from_xyz(0., 0., ZOrdering::HEALTH_BAR)
+                        .with_scale(Vec3::new(HEX_RADIUS, HEX_RADIUS / 4., 1.)),
                     ..default()
                 },
             ))

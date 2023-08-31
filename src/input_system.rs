@@ -6,8 +6,9 @@ use crate::common_components::UnitFilter;
 use crate::game_state::{ActiveTeam, RoundState};
 use crate::hex::HexComponent;
 use crate::hovered_hex::HoveredHex;
+use crate::selected_unit::SelectedUnitResource;
 use crate::team_setup::Team;
-use crate::{HoveredUnitResource, SelectedUnitResource};
+use crate::HoveredUnitResource;
 
 pub fn update_selected_unit(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,

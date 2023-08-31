@@ -5,8 +5,9 @@ use bevy_egui::EguiContexts;
 use crate::action_points::ActionPoints;
 use crate::combat::HealthPoints;
 use crate::game_state::{ActiveTeam, GameState};
+use crate::selected_unit::SelectedUnitResource;
 use crate::team_setup::Team;
-use crate::{HoveredUnitResource, SelectedUnitResource};
+use crate::HoveredUnitResource;
 
 pub fn ui_system(
     mut contexts: EguiContexts,

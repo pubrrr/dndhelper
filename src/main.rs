@@ -18,8 +18,11 @@ use crate::health_bar::{
 use crate::hex::setup_hex_grid;
 use crate::hovered_hex::{update_hovered_hex, HoveredHex};
 use crate::input_system::{update_hovered_unit, update_selected_unit};
-use crate::post_update_systems::{update_hex_colors, update_transform_from_hex};
-use crate::team_setup::{setup_team_resources, setup_team_units};
+use crate::post_update_systems::update_transform_from_hex;
+use crate::selected_unit::{
+    reset_selected_unit, update_hex_colors, update_selected_unit_hex, SelectedUnitResource,
+};
+use crate::team_setup::setup_team_units;
 
 mod action_points;
 mod combat;
@@ -31,8 +34,11 @@ mod hex;
 mod hovered_hex;
 mod input_system;
 mod post_update_systems;
+mod selected_unit;
 mod team_setup;
+mod terrain;
 mod util;
+mod z_ordering;
 
 fn main() {
     App::new()
@@ -49,10 +55,7 @@ fn main() {
         .init_collection::<ImageAssets>()
         .add_state::<GameState>()
         .add_state::<RoundState>()
-        .add_systems(
-            Startup,
-            (setup_camera, setup_hex_grid, setup_team_resources),
-        )
+        .add_systems(Startup, (setup_camera, setup_hex_grid))
         .add_systems(PostStartup, setup_team_units)
         .add_systems(
             PreUpdate,
@@ -63,6 +66,7 @@ fn main() {
             (
                 ui_system,
                 add_health_bars,
+                reset_selected_unit,
                 update_selected_unit.run_if(in_state(RoundState::Moving)),
                 update_hovered_unit.run_if(in_state(RoundState::Moving)),
                 handle_combat.run_if(in_state(RoundState::Combat)),
@@ -72,6 +76,7 @@ fn main() {
             PostUpdate,
             (
                 update_transform_from_hex,
+                update_selected_unit_hex,
                 update_hex_colors,
                 despawn_dead_units,
                 update_health_bar_positions,
@@ -93,11 +98,6 @@ fn main() {
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2dBundle::default());
-}
-
-#[derive(Resource, Default)]
-pub struct SelectedUnitResource {
-    selected_unit: Option<Entity>,
 }
 
 #[derive(Resource, Default)]

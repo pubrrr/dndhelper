@@ -1,22 +1,15 @@
-use crate::combat::CombatConfig;
-use crate::combat::HealthPoints;
-use bevy::prelude::{
-    default, Assets, Color, ColorMaterial, Commands, Component, Handle, Res, ResMut, Resource,
-    SpriteBundle, Transform, Vec3,
-};
-use bevy::utils::HashMap;
-use hexx::Hex;
 use std::fmt::{Display, Formatter};
 
+use bevy::prelude::{default, Commands, Component, Res, SpriteBundle, Transform, Vec3};
+use hexx::Hex;
+
 use crate::action_points::ActionPoints;
+use crate::combat::CombatConfig;
+use crate::combat::HealthPoints;
 use crate::common_components::UnitMarker;
 use crate::hex::HexComponent;
+use crate::z_ordering::ZOrdering;
 use crate::ImageAssets;
-
-#[derive(Resource)]
-pub struct TeamResources {
-    pub materials: HashMap<Team, TeamMaterial>,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
 pub enum Team {
@@ -33,42 +26,13 @@ impl Display for Team {
     }
 }
 
-#[derive(Clone)]
-pub struct TeamMaterial {
-    pub hex_color: Handle<ColorMaterial>,
-}
-
-pub fn setup_team_resources(mut commands: Commands, mut materials: ResMut<Assets<ColorMaterial>>) {
-    let red_hex_color = materials.add(Color::RED.into());
-    let blue_hex_color = materials.add(Color::BLUE.into());
-
-    commands.insert_resource(TeamResources {
-        materials: [
-            (
-                Team::Red,
-                TeamMaterial {
-                    hex_color: red_hex_color,
-                },
-            ),
-            (
-                Team::Blue,
-                TeamMaterial {
-                    hex_color: blue_hex_color,
-                },
-            ),
-        ]
-        .iter()
-        .cloned()
-        .collect(),
-    });
-}
-
 pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) {
     for i in 0..5 {
         commands
             .spawn(SpriteBundle {
                 texture: image_assets.manf.clone(),
-                transform: Transform::default().with_scale(Vec3::splat(0.5)),
+                transform: Transform::from_xyz(0., 0., ZOrdering::UNITS)
+                    .with_scale(Vec3::splat(0.5)),
                 ..default()
             })
             .insert(UnitMarker)
@@ -84,7 +48,8 @@ pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) 
         commands
             .spawn(SpriteBundle {
                 texture: image_assets.tree.clone(),
-                transform: Transform::default().with_scale(Vec3::splat(0.5)),
+                transform: Transform::from_xyz(0., 0., ZOrdering::UNITS)
+                    .with_scale(Vec3::splat(0.5)),
                 ..default()
             })
             .insert(UnitMarker)
