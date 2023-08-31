@@ -13,6 +13,9 @@ use crate::clicked_hex::{update_clicked_hex, ClickedHex};
 use crate::combat::{despawn_dead_units, handle_combat, CombatantsResource};
 use crate::egui::ui_system;
 use crate::game_state::{round_end_system, ActiveTeam, GameState, RoundState};
+use crate::health_bar::{
+    add_health_bars, update_health_bar_positions, update_health_bar_size, HealthBarResources,
+};
 use crate::hex::setup_hex_grid;
 use crate::input_system::handle_input;
 use crate::post_update_systems::{update_hex_colors, update_transform_from_hex};
@@ -24,6 +27,7 @@ mod combat;
 mod common_components;
 mod egui;
 mod game_state;
+mod health_bar;
 mod hex;
 mod input_system;
 mod post_update_systems;
@@ -58,6 +62,7 @@ fn main() {
             Update,
             (
                 ui_system,
+                add_health_bars,
                 handle_input.run_if(in_state(RoundState::Moving)),
                 handle_combat.run_if(in_state(RoundState::Combat)),
             ),
@@ -68,6 +73,8 @@ fn main() {
                 update_transform_from_hex,
                 update_hex_colors,
                 despawn_dead_units,
+                update_health_bar_positions,
+                update_health_bar_size,
             ),
         )
         .add_systems(
@@ -78,6 +85,7 @@ fn main() {
         .init_resource::<ClickedHex>()
         .init_resource::<SelectedUnitResource>()
         .init_resource::<CombatantsResource>()
+        .init_resource::<HealthBarResources>()
         .run();
 }
 

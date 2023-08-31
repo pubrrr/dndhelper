@@ -1,7 +1,7 @@
 use std::cmp::max;
 
 use bevy::prelude::{
-    debug, warn, Changed, Commands, Component, DespawnRecursiveExt, Entity, NextState, Query,
+    debug, info, warn, Changed, Commands, Component, DespawnRecursiveExt, Entity, NextState, Query,
     ResMut, Resource,
 };
 
@@ -85,6 +85,7 @@ pub fn despawn_dead_units(
 ) {
     for (entity, health_points) in units.iter() {
         if health_points.left == 0 {
+            info!("Despawning {entity:?}, because health points are 0");
             commands.entity(entity).despawn_recursive();
         }
     }

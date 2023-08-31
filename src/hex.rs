@@ -5,6 +5,8 @@ use bevy::prelude::{
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use hexx::{Hex, HexLayout, PlaneMeshBuilder};
 
+pub const HEX_RADIUS: f32 = 50.;
+
 #[derive(Component)]
 pub struct HexMarker;
 
@@ -25,7 +27,7 @@ pub fn setup_hex_grid(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let hex_layout = HexLayout {
-        hex_size: Vec2::splat(50.),
+        hex_size: Vec2::splat(HEX_RADIUS),
         ..default()
     };
 
