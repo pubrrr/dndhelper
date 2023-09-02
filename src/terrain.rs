@@ -1,5 +1,6 @@
 use bevy::prelude::Component;
 use std::cmp::max;
+use std::fmt::{Display, Formatter};
 
 #[derive(Component, Debug, Clone)]
 pub struct Terrain {
@@ -11,6 +12,15 @@ pub struct Terrain {
 pub enum MovementCost {
     Impassable,
     Passable(usize),
+}
+
+impl Display for MovementCost {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MovementCost::Impassable => write!(f, "Impassable"),
+            MovementCost::Passable(cost) => write!(f, "{cost}"),
+        }
+    }
 }
 
 impl MovementCost {

@@ -55,7 +55,7 @@ fn main() {
                 })
                 .set(LogPlugin {
                     level: Level::DEBUG,
-                    filter: "wgpu=error,naga=warn,bevy_render=info,bevy::app=info".to_string(),
+                    filter: "wgpu=error,naga=warn,bevy_render=info,bevy_app=info".to_string(),
                 }),
             EguiPlugin,
         ))
