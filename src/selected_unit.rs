@@ -1,6 +1,6 @@
 use bevy::prelude::{
-    ColorMaterial, Commands, Component, Entity, Handle, Input, KeyCode, Query, Res, ResMut,
-    Resource, With, Without,
+    debug, Changed, ColorMaterial, Commands, Component, DetectChanges, Entity, Handle, Input,
+    KeyCode, Query, Res, ResMut, Resource, With, Without,
 };
 use bevy::utils::HashMap;
 use hexx::algorithms::field_of_movement;
@@ -8,8 +8,10 @@ use hexx::Hex;
 use std::collections::HashSet;
 
 use crate::action_points::ActionPoints;
+use crate::combat::ATTACK_ACTION_POINT_COST;
 use crate::common_components::{UnitFilter, UnitMarker};
 use crate::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
+use crate::team_setup::Team;
 use crate::terrain::{MovementCost, Terrain};
 
 #[derive(Resource, Default)]
@@ -28,7 +30,6 @@ impl SelectedUnitResource {
     pub fn set_selected_unit(&mut self, selected_unit: Option<Entity>) {
         self.needs_reachable_hexes_recomputation();
         self.selected_unit = selected_unit;
-        self.cost_map = HashMap::new();
     }
 
     pub fn reachable_hexes(&self) -> &Option<HashSet<Hex>> {
@@ -41,7 +42,7 @@ impl SelectedUnitResource {
 
     pub fn needs_reachable_hexes_recomputation(&mut self) {
         self.recompute_cache = true;
-        self.reachable_hexes = None;
+        self.reachable_hexes = Some(HashSet::new());
         self.cost_map = HashMap::new();
     }
 }
@@ -51,12 +52,26 @@ pub struct SelectedUnitHexMarker {
     pub selected_hex_color: Handle<ColorMaterial>,
 }
 
+pub fn check_whether_selected_unit_needs_recomputation(
+    mut selected_unit_resource: ResMut<SelectedUnitResource>,
+    units_with_changed_action_points: Query<Entity, (With<UnitMarker>, Changed<ActionPoints>)>,
+) {
+    let Some(selected_unit) = selected_unit_resource.selected_unit else {
+        return;
+    };
+
+    if units_with_changed_action_points.contains(selected_unit) {
+        debug!("Recomputing because selected unit action points changed");
+        selected_unit_resource.needs_reachable_hexes_recomputation();
+    }
+}
+
 pub fn reset_selected_unit(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     keys: Res<Input<KeyCode>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
-        selected_unit_resource.selected_unit = None;
+        selected_unit_resource.set_selected_unit(None);
     }
 }
 
@@ -74,6 +89,10 @@ pub fn update_selected_unit_hex(
         Without<UnitMarker>,
     >,
 ) {
+    if !selected_unit_resource.is_changed() {
+        return;
+    }
+
     if let Some(selected_unit) = selected_unit_resource.selected_unit {
         let selected_unit_hex_component = units.get(selected_unit).unwrap();
         let (entity, mut hex_hex_component, marker, _) = selected_unit_hex_query.single_mut();
@@ -93,7 +112,7 @@ pub fn update_selected_unit_hex(
 }
 
 pub fn update_reachable_hexes_cache(
-    units: Query<(&ActionPoints, &HexComponent), UnitFilter>,
+    units: Query<(&ActionPoints, &HexComponent, &Team), UnitFilter>,
     hexes: Query<(&HexComponent, &Terrain), With<HexMarker>>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
 ) {
@@ -107,12 +126,23 @@ pub fn update_reachable_hexes_cache(
         return;
     };
 
-    let (action_points, selected_unit_hex) = units.get(selected_unit).unwrap();
+    let (action_points, selected_unit_hex, selected_unit_team) = units.get(selected_unit).unwrap();
 
     selected_unit_resource.cost_map = hexes
         .iter()
         .map(|(hex_component, terrain)| (hex_component.0, terrain.movement_cost.clone()))
         .collect();
+
+    selected_unit_resource
+        .cost_map
+        .extend(units.iter().map(|(_, hex_component, team)| {
+            let cost = match selected_unit_hex.0.unsigned_distance_to(hex_component.0) {
+                0 => MovementCost::Passable(0),
+                1 if team != selected_unit_team => MovementCost::Passable(ATTACK_ACTION_POINT_COST),
+                _ => MovementCost::Impassable,
+            };
+            (hex_component.0, cost)
+        }));
 
     let reachable_hexes =
         field_of_movement(selected_unit_hex.0, action_points.left as u32, |hex| {

@@ -1,4 +1,5 @@
 use bevy::asset::AssetServer;
+use bevy::log::{Level, LogPlugin};
 use bevy::prelude::{
     default, in_state, App, Camera2dBundle, Commands, Entity, Handle, Image, IntoSystemConfigs,
     OnEnter, PluginGroup, PostStartup, PostUpdate, PreUpdate, Resource, Startup, Update,
@@ -20,8 +21,8 @@ use crate::hovered_hex::{update_hovered_hex, HoveredHex};
 use crate::input_system::{handle_selected_unit_input, update_hovered_unit};
 use crate::post_update_systems::update_transform_from_hex;
 use crate::selected_unit::{
-    reset_selected_unit, update_hex_overlay, update_reachable_hexes_cache,
-    update_selected_unit_hex, SelectedUnitResource,
+    check_whether_selected_unit_needs_recomputation, reset_selected_unit, update_hex_overlay,
+    update_reachable_hexes_cache, update_selected_unit_hex, SelectedUnitResource,
 };
 use crate::team_setup::setup_team_units;
 
@@ -44,13 +45,18 @@ mod z_ordering;
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(bevy::window::Window {
-                    resolution: (1000., 1000.).into(),
+            DefaultPlugins
+                .set(WindowPlugin {
+                    primary_window: Some(bevy::window::Window {
+                        resolution: (1000., 1000.).into(),
+                        ..default()
+                    }),
                     ..default()
+                })
+                .set(LogPlugin {
+                    level: Level::DEBUG,
+                    filter: "wgpu=error,naga=warn,bevy_render=info,bevy::app=info".to_string(),
                 }),
-                ..default()
-            }),
             EguiPlugin,
         ))
         .init_collection::<ImageAssets>()
@@ -76,6 +82,7 @@ fn main() {
         .add_systems(
             PostUpdate,
             (
+                check_whether_selected_unit_needs_recomputation,
                 update_transform_from_hex,
                 update_selected_unit_hex,
                 update_reachable_hexes_cache,

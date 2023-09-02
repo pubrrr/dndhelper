@@ -43,6 +43,8 @@ pub enum CombatantsResource {
     },
 }
 
+pub const ATTACK_ACTION_POINT_COST: usize = 1;
+
 pub fn handle_combat(
     mut next_round_state: ResMut<NextState<RoundState>>,
     mut units: Query<(&CombatConfig, &mut HealthPoints, &mut ActionPoints)>,
@@ -63,7 +65,7 @@ pub fn handle_combat(
         *combatants_resource = CombatantsResource::NoCombat;
         return;
     }
-    action_points.left -= 1;
+    action_points.left -= ATTACK_ACTION_POINT_COST;
     let attack_points = attacker_config.attack;
     let (defender_config, mut defender_health_points, _) = units.get_mut(defender).unwrap();
 

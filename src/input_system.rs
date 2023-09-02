@@ -1,4 +1,4 @@
-use bevy::prelude::{Entity, Input, MouseButton, NextState, Query, Res, ResMut, With};
+use bevy::prelude::{debug, warn, Entity, Input, MouseButton, NextState, Query, Res, ResMut, With};
 use hexx::algorithms::a_star;
 
 use crate::action_points::ActionPoints;
@@ -58,10 +58,14 @@ pub fn handle_selected_unit_input(
 
     if let Some(selected_unit) = selected_unit_resource.selected_unit() {
         let Some(reachable_hexes) = selected_unit_resource.reachable_hexes() else {
+            warn!(
+                "Ignoring click for selected unit {selected_unit:?}, because had no reachable hexes"
+            );
             return;
         };
 
         if !reachable_hexes.contains(&hex_cursor_position) {
+            debug!("Reachable hexes don't contain cursor position {hex_cursor_position:?}");
             return;
         }
 
@@ -73,6 +77,7 @@ pub fn handle_selected_unit_input(
                 .get(&hex)
                 .and_then(|movement_cost| movement_cost.get_modified_algorithm_cost())
         }) else {
+            debug!("A Star algorithm returned None");
             return;
         };
 
@@ -97,7 +102,6 @@ pub fn handle_selected_unit_input(
 
         hex_component.0 = hex_cursor_position;
         action_points.left -= cost;
-        selected_unit_resource.needs_reachable_hexes_recomputation();
     };
 }
 
