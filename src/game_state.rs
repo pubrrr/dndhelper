@@ -1,4 +1,4 @@
-use bevy::prelude::{NextState, ResMut, Resource, States};
+use bevy::prelude::{NextState, ResMut, Resource, State, States};
 
 use crate::selected_unit::SelectedUnitResource;
 use crate::team_setup::Team;
@@ -6,15 +6,17 @@ use crate::team_setup::Team;
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 pub enum GameState {
     #[default]
-    Round,
-    RoundEnd,
+    Loading,
+    InGame,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 pub enum RoundState {
     #[default]
+    Paused,
     Moving,
     Combat,
+    RoundEnd,
 }
 
 #[derive(Resource)]
@@ -26,8 +28,16 @@ impl Default for ActiveTeam {
     }
 }
 
+pub fn start_round_system(
+    round_state: ResMut<State<RoundState>>,
+    mut next_round_state: ResMut<NextState<RoundState>>,
+) {
+    if round_state.get() == &RoundState::Paused {
+        next_round_state.set(RoundState::Moving);
+    }
+}
+
 pub fn round_end_system(
-    mut game_state: ResMut<NextState<GameState>>,
     mut round_state: ResMut<NextState<RoundState>>,
     mut active_team: ResMut<ActiveTeam>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
@@ -41,6 +51,5 @@ pub fn round_end_system(
 
     active_team.0 = next_team;
 
-    game_state.set(GameState::Round);
     round_state.set(RoundState::Moving);
 }

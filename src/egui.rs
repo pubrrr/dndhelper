@@ -4,21 +4,19 @@ use bevy_egui::EguiContexts;
 
 use crate::action_points::ActionPoints;
 use crate::combat::HealthPoints;
-use crate::game_state::{ActiveTeam, GameState};
+use crate::game_state::{ActiveTeam, RoundState};
 use crate::hex::HexComponent;
-use crate::hovered_hex::HoveredHex;
+use crate::hovered_hex::{HoveredHex, HoveredUnitResource};
 use crate::selected_unit::SelectedUnitResource;
 use crate::team_setup::Team;
 use crate::terrain::Terrain;
-use crate::HoveredUnitResource;
 
 pub fn ui_system(
     mut contexts: EguiContexts,
     active_team: Res<ActiveTeam>,
-    mut game_state: ResMut<NextState<GameState>>,
+    mut round_state: ResMut<NextState<RoundState>>,
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
-
     units: Query<(&ActionPoints, &HealthPoints, &Team)>,
     hovered_hex: Res<HoveredHex>,
     terrain_hexes: Query<(&Terrain, &HexComponent)>,
@@ -37,7 +35,7 @@ pub fn ui_system(
         ui.separator();
 
         if ui.button("End Round").clicked() {
-            game_state.set(GameState::RoundEnd);
+            round_state.set(RoundState::RoundEnd);
         };
     });
 }

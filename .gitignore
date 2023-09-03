@@ -9,9 +9,10 @@ target/
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
-
-# Added by cargo
-
 /target
 /public/wasm/
+/public/assets/
+
+/assets/generated_nations.assets.ron
+
 /.idea/

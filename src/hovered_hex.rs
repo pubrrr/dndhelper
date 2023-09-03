@@ -1,9 +1,12 @@
-use bevy::prelude::{Camera, GlobalTransform, Query, Res, ResMut, Resource, With};
+use bevy::prelude::{Camera, Entity, GlobalTransform, Query, Res, ResMut, Resource, With};
 use bevy::window::PrimaryWindow;
 use hexx::Hex;
 
 use crate::common_components::HexFilter;
 use crate::hex::{HexComponent, HexResources};
+
+#[derive(Resource, Default)]
+pub struct HoveredUnitResource(pub Option<Entity>);
 
 #[derive(Resource, Default)]
 pub struct HoveredHex(pub Option<Hex>);

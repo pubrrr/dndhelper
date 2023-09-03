@@ -8,8 +8,8 @@ use crate::combat::CombatConfig;
 use crate::combat::HealthPoints;
 use crate::common_components::UnitMarker;
 use crate::hex::HexComponent;
+use crate::nation_assets::NationAssetCollection;
 use crate::z_ordering::ZOrdering;
-use crate::ImageAssets;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
 pub enum Team {
@@ -26,17 +26,19 @@ impl Display for Team {
     }
 }
 
-pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) {
+pub fn setup_team_units(mut commands: Commands, unit_assets: Res<NationAssetCollection>) {
+    let manf_image = &unit_assets.unit_images["nations/Mansreich/units/Manf/sprite.png"];
+    let tree_image = &unit_assets.unit_images["nations/Kurzland/units/Tree/sprite.png"];
     for i in 0..5 {
         commands
             .spawn(SpriteBundle {
-                texture: image_assets.manf.clone(),
+                texture: manf_image.clone(),
                 transform: Transform::from_xyz(0., 0., ZOrdering::UNITS)
                     .with_scale(Vec3::splat(0.5)),
                 ..default()
             })
-            .insert(UnitMarker)
             .insert(Team::Red)
+            .insert(UnitMarker)
             .insert(ActionPoints::with_max(3))
             .insert(HealthPoints::new(3))
             .insert(CombatConfig {
@@ -47,7 +49,7 @@ pub fn setup_team_units(mut commands: Commands, image_assets: Res<ImageAssets>) 
 
         commands
             .spawn(SpriteBundle {
-                texture: image_assets.tree.clone(),
+                texture: tree_image.clone(),
                 transform: Transform::from_xyz(0., 0., ZOrdering::UNITS)
                     .with_scale(Vec3::splat(0.5)),
                 ..default()

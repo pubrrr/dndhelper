@@ -7,10 +7,10 @@ use crate::common_components::UnitFilter;
 use crate::game_state::{ActiveTeam, RoundState};
 use crate::hex::{HexComponent, HexMarker};
 use crate::hovered_hex::HoveredHex;
+use crate::hovered_hex::HoveredUnitResource;
 use crate::selected_unit::SelectedUnitResource;
 use crate::team_setup::Team;
 use crate::terrain::{MovementCost, Terrain};
-use crate::HoveredUnitResource;
 
 pub fn handle_selected_unit_input(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
