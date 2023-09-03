@@ -7,12 +7,12 @@ use hexx::algorithms::field_of_movement;
 use hexx::Hex;
 use std::collections::HashSet;
 
-use crate::action_points::ActionPoints;
-use crate::combat::ATTACK_ACTION_POINT_COST;
-use crate::common_components::{UnitFilter, UnitMarker};
-use crate::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
-use crate::team_setup::Team;
-use crate::terrain::{MovementCost, Terrain};
+use crate::game::action_points::ActionPoints;
+use crate::game::combat::ATTACK_ACTION_POINT_COST;
+use crate::game::common_components::{UnitFilter, UnitMarker};
+use crate::game::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
+use crate::game::team_setup::Team;
+use crate::game::terrain::{MovementCost, Terrain};
 
 #[derive(Resource, Default)]
 pub struct SelectedUnitResource {

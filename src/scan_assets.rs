@@ -2,9 +2,9 @@ use ron::ser::PrettyConfig;
 use std::fs;
 use std::fs::{DirEntry, File};
 
-use crate::nation_assets::{DynamicNationAssets, NationAssets, UnitAssets};
+use crate::common::{DynamicNationAssetsDefinition, NationAssetsDefinition, UnitAssetsDefinition};
 
-pub const GENERATED_NATIONS_ASSETS_FILE: &'static str = "generated_nations.assets.ron";
+pub const GENERATED_NATIONS_ASSETS_FILE: &str = "generated_nations.assets.ron";
 
 pub fn write_nations_assets() -> ron::Result<()> {
     println!("Writing dynamic nations assets file...");
@@ -19,21 +19,21 @@ pub fn write_nations_assets() -> ron::Result<()> {
     result
 }
 
-fn scan_assets() -> DynamicNationAssets {
+fn scan_assets() -> DynamicNationAssetsDefinition {
     let nation_assets_dir = fs::read_dir("assets/nations").unwrap();
 
     let nation_assets = nation_assets_dir
         .map(|dir_entry| dir_entry.unwrap())
-        .map(|dir_entry| NationAssets {
+        .map(|dir_entry| NationAssetsDefinition {
             path: dir_entry.file_name().into_string().unwrap(),
             units: get_unit_assets(dir_entry),
         })
         .collect();
 
-    DynamicNationAssets(nation_assets)
+    DynamicNationAssetsDefinition(nation_assets)
 }
 
-fn get_unit_assets(nation_dir: DirEntry) -> Vec<UnitAssets> {
+fn get_unit_assets(nation_dir: DirEntry) -> Vec<UnitAssetsDefinition> {
     let unit_assets_dir = fs::read_dir(format!(
         "{}/units",
         nation_dir.path().as_os_str().to_str().unwrap()
@@ -42,7 +42,7 @@ fn get_unit_assets(nation_dir: DirEntry) -> Vec<UnitAssets> {
 
     unit_assets_dir
         .map(|dir_entry| dir_entry.unwrap())
-        .map(|dir_entry| UnitAssets {
+        .map(|dir_entry| UnitAssetsDefinition {
             path: dir_entry.file_name().into_string().unwrap(),
         })
         .collect()

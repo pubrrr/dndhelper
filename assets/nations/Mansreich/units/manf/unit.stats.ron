@@ -1,0 +1,7 @@
+(
+    name: "Manf",
+    max_action_points: 4,
+    max_health_points: 3,
+    attack: 1,
+    defense: 11,
+)

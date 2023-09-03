@@ -8,29 +8,32 @@ use bevy_asset_loader::prelude::LoadingStateAppExt;
 use bevy_common_assets::ron::RonAssetPlugin;
 use bevy_egui::EguiPlugin;
 
-use dndhelper::action_points::reset_action_points;
-use dndhelper::combat::{despawn_dead_units, handle_combat, CombatantsResource};
-use dndhelper::egui::ui_system;
-use dndhelper::game_state::start_round_system;
-use dndhelper::game_state::{round_end_system, ActiveTeam, GameState, RoundState};
-use dndhelper::health_bar::{
+use dndhelper::common::DynamicNationAssetsDefinition;
+use dndhelper::game::action_points::reset_action_points;
+use dndhelper::game::combat::{despawn_dead_units, handle_combat, CombatantsResource};
+use dndhelper::game::egui::ui_system;
+use dndhelper::game::game_state::start_round_system;
+use dndhelper::game::game_state::{round_end_system, ActiveTeam, GameState, RoundState};
+use dndhelper::game::health_bar::{
     add_health_bars, update_health_bar_positions, update_health_bar_size, HealthBarResources,
 };
-use dndhelper::hex::setup_hex_grid;
-use dndhelper::hovered_hex::HoveredUnitResource;
-use dndhelper::hovered_hex::{update_hovered_hex, HoveredHex};
-use dndhelper::input_system::{handle_selected_unit_input, update_hovered_unit};
-use dndhelper::menu::menu_ui;
-use dndhelper::nation_assets::{DynamicNationAssets, LoadingState, NationAssetCollection};
-use dndhelper::post_update_systems::update_transform_from_hex;
-#[cfg(not(target_family = "wasm"))]
-use dndhelper::scan_assets::write_nations_assets;
-use dndhelper::scan_assets::GENERATED_NATIONS_ASSETS_FILE;
-use dndhelper::selected_unit::{
+use dndhelper::game::hex::setup_hex_grid;
+use dndhelper::game::hovered_hex::HoveredUnitResource;
+use dndhelper::game::hovered_hex::{update_hovered_hex, HoveredHex};
+use dndhelper::game::input_system::{handle_selected_unit_input, update_hovered_unit};
+use dndhelper::game::menu::menu_ui;
+use dndhelper::game::nation_asset_resource::insert_nation_assets_resource;
+use dndhelper::game::nation_asset_resource::NationAssetsResourceHelperAssets;
+use dndhelper::game::nation_assets::{LoadingState, NationAssetCollection, UnitStats};
+use dndhelper::game::post_update_systems::update_transform_from_hex;
+use dndhelper::game::selected_unit::{
     check_whether_selected_unit_needs_recomputation, reset_selected_unit, update_hex_overlay,
     update_reachable_hexes_cache, update_selected_unit_hex, SelectedUnitResource,
 };
-use dndhelper::team_setup::setup_team_units;
+use dndhelper::game::team_setup::setup_team_units;
+#[cfg(not(target_family = "wasm"))]
+use dndhelper::scan_assets::write_nations_assets;
+use dndhelper::scan_assets::GENERATED_NATIONS_ASSETS_FILE;
 
 fn main() {
     #[cfg(not(target_family = "wasm"))]
@@ -50,23 +53,37 @@ fn main() {
                     level: Level::DEBUG,
                     filter: "wgpu=error,naga=warn,bevy_render=info,bevy_app=info".to_string(),
                 }),
-            RonAssetPlugin::<DynamicNationAssets>::new(&["assets.ron"]),
+            RonAssetPlugin::<DynamicNationAssetsDefinition>::new(&["assets.ron"]),
+            RonAssetPlugin::<UnitStats>::new(&["stats.ron"]),
             EguiPlugin,
         ))
         .add_loading_state(
-            bevy_asset_loader::loading_state::LoadingState::new(LoadingState::Loading)
-                .continue_to_state(LoadingState::Done)
+            bevy_asset_loader::loading_state::LoadingState::new(LoadingState::LoadingDynamicAssets)
+                .continue_to_state(LoadingState::LoadingNationAssetsDefinition)
                 .set_standard_dynamic_asset_collection_file_endings(vec![]),
         )
-        .add_dynamic_collection_to_loading_state::<_, DynamicNationAssets>(
-            LoadingState::Loading,
+        .add_loading_state(
+            bevy_asset_loader::loading_state::LoadingState::new(
+                LoadingState::LoadingNationAssetsDefinition,
+            )
+            .continue_to_state(LoadingState::Done)
+            .set_standard_dynamic_asset_collection_file_endings(vec![]),
+        )
+        .add_dynamic_collection_to_loading_state::<_, DynamicNationAssetsDefinition>(
+            LoadingState::LoadingDynamicAssets,
             GENERATED_NATIONS_ASSETS_FILE,
         )
-        .add_collection_to_loading_state::<_, NationAssetCollection>(LoadingState::Loading)
+        .add_collection_to_loading_state::<_, NationAssetCollection>(
+            LoadingState::LoadingDynamicAssets,
+        )
+        .add_collection_to_loading_state::<_, NationAssetsResourceHelperAssets>(
+            LoadingState::LoadingNationAssetsDefinition,
+        )
         .add_state::<LoadingState>()
         .add_state::<GameState>()
         .add_state::<RoundState>()
         .add_systems(Startup, setup_camera)
+        .add_systems(OnEnter(LoadingState::Done), insert_nation_assets_resource)
         .add_systems(
             OnEnter(GameState::InGame),
             (setup_hex_grid, setup_team_units, start_round_system),

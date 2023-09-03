@@ -2,14 +2,14 @@ use bevy::prelude::{warn, NextState, Query, Res, ResMut};
 use bevy_egui::egui::{Ui, Window};
 use bevy_egui::EguiContexts;
 
-use crate::action_points::ActionPoints;
-use crate::combat::HealthPoints;
-use crate::game_state::{ActiveTeam, RoundState};
-use crate::hex::HexComponent;
-use crate::hovered_hex::{HoveredHex, HoveredUnitResource};
-use crate::selected_unit::SelectedUnitResource;
-use crate::team_setup::Team;
-use crate::terrain::Terrain;
+use crate::game::action_points::ActionPoints;
+use crate::game::combat::HealthPoints;
+use crate::game::game_state::{ActiveTeam, RoundState};
+use crate::game::hex::HexComponent;
+use crate::game::hovered_hex::{HoveredHex, HoveredUnitResource};
+use crate::game::selected_unit::SelectedUnitResource;
+use crate::game::team_setup::Team;
+use crate::game::terrain::Terrain;
 
 pub fn ui_system(
     mut contexts: EguiContexts,

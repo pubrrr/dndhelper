@@ -1,22 +1,23 @@
 use bevy::asset::Error;
-use bevy::prelude::{info, AssetServer, Handle, HandleUntyped, Image, Resource, States, World};
+use bevy::prelude::{AssetServer, Handle, HandleUntyped, Image, Resource, States, World};
 use bevy::reflect::{TypePath, TypeUuid};
 use bevy::utils::HashMap;
-use bevy_asset_loader::dynamic_asset::DynamicAssets;
 use bevy_asset_loader::prelude::{
-    AssetCollection, DynamicAsset, DynamicAssetCollection, DynamicAssetType, StandardDynamicAsset,
+    AssetCollection, DynamicAsset, DynamicAssetType, StandardDynamicAsset,
 };
 
-#[derive(AssetCollection, Resource, Debug)]
+#[derive(AssetCollection, Resource, Debug, Clone)]
 pub struct NationAssetCollection {
     #[asset(key = "unit_images", collection(typed, mapped))]
     pub unit_images: HashMap<String, Handle<Image>>,
+    #[asset(key = "unit_stats_files", collection(typed, mapped))]
+    pub unit_stats_files: HashMap<String, Handle<UnitStats>>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Eq, PartialEq, Hash)]
 pub struct UnitKey {
-    pub nation: String,
-    pub name: String,
+    pub(crate) nation: String,
+    pub(crate) name: String,
 }
 
 impl Into<String> for UnitKey {
@@ -24,6 +25,7 @@ impl Into<String> for UnitKey {
         format!("{}:{}", self.nation, self.name)
     }
 }
+
 impl From<String> for UnitKey {
     fn from(value: String) -> Self {
         let parts: Vec<_> = value.split(':').collect();
@@ -40,14 +42,23 @@ impl From<String> for UnitKey {
 }
 
 impl UnitKey {
-    fn get_standard_assets(&self) -> Vec<StandardDynamicAsset> {
-        vec![StandardDynamicAsset::File {
-            path: self.get_image_asset(),
-        }]
+    pub fn get_standard_assets(&self) -> Vec<StandardDynamicAsset> {
+        vec![
+            StandardDynamicAsset::File {
+                path: self.get_image_asset_path(),
+            },
+            StandardDynamicAsset::File {
+                path: self.get_stats_asset_path(),
+            },
+        ]
     }
 
-    fn get_image_asset(&self) -> String {
+    pub fn get_image_asset_path(&self) -> String {
         format!("nations/{}/units/{}/sprite.png", self.nation, self.name).to_string()
+    }
+
+    pub fn get_stats_asset_path(&self) -> String {
+        format!("nations/{}/units/{}/unit.stats.ron", self.nation, self.name).to_string()
     }
 }
 
@@ -80,57 +91,20 @@ impl DynamicAsset for UnitKey {
     }
 }
 
-#[derive(serde::Deserialize, serde::Serialize, TypeUuid, TypePath, Debug, PartialEq)]
-#[uuid = "20eb6907-3d6f-4a93-bb03-62b812182055"]
-pub struct DynamicNationAssets(pub Vec<NationAssets>);
-
-impl DynamicAssetCollection for DynamicNationAssets {
-    fn register(&self, dynamic_assets: &mut DynamicAssets) {
-        let image_assets = self
-            .0
-            .iter()
-            .map(|nation_assets| nation_assets.get_units())
-            .flatten()
-            .map(|unit_key| unit_key.get_image_asset())
-            .collect();
-
-        info!("Registering unit images: {image_assets:?}");
-
-        dynamic_assets.register_asset(
-            "unit_images",
-            Box::new(StandardDynamicAsset::Files {
-                paths: image_assets,
-            }),
-        )
-    }
-}
-
-#[derive(serde::Deserialize, serde::Serialize, Debug, PartialEq)]
-pub struct NationAssets {
-    pub path: String,
-    pub units: Vec<UnitAssets>,
-}
-
-impl NationAssets {
-    pub fn get_units(&self) -> Vec<UnitKey> {
-        self.units
-            .iter()
-            .map(|unit_assets| UnitKey {
-                nation: self.path.to_string(),
-                name: unit_assets.path.to_string(),
-            })
-            .collect()
-    }
-}
-
-#[derive(serde::Deserialize, serde::Serialize, Debug, PartialEq)]
-pub struct UnitAssets {
-    pub path: String,
+#[derive(serde::Deserialize, serde::Serialize, TypeUuid, TypePath, Clone, Debug, PartialEq)]
+#[uuid = "6e753c5b-0158-48ac-a54e-c90cd6022815"]
+pub struct UnitStats {
+    pub name: String,
+    pub max_action_points: usize,
+    pub max_health_points: usize,
+    pub attack: usize,
+    pub defense: usize,
 }
 
 #[derive(Debug, Default, Clone, States, PartialEq, Eq, Hash)]
 pub enum LoadingState {
     #[default]
-    Loading,
+    LoadingDynamicAssets,
+    LoadingNationAssetsDefinition,
     Done,
 }

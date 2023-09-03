@@ -5,9 +5,9 @@ use bevy::prelude::{
     ResMut, Resource,
 };
 
-use crate::action_points::ActionPoints;
-use crate::game_state::RoundState;
-use crate::util::dice::Dice;
+use crate::game::action_points::ActionPoints;
+use crate::game::game_state::RoundState;
+use crate::game::util::dice::Dice;
 
 #[derive(Component, Debug)]
 pub struct HealthPoints {

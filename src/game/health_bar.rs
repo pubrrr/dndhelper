@@ -6,9 +6,9 @@ use bevy::prelude::{
 };
 use bevy::sprite::Mesh2dHandle;
 
-use crate::combat::HealthPoints;
-use crate::hex::HEX_RADIUS;
-use crate::z_ordering::ZOrdering;
+use crate::game::combat::HealthPoints;
+use crate::game::hex::HEX_RADIUS;
+use crate::game::z_ordering::ZOrdering;
 
 const MAX_Y_SCALE: f32 = 0.9;
 

@@ -1,7 +1,7 @@
 use bevy::prelude::{NextState, ResMut, Resource, State, States};
 
-use crate::selected_unit::SelectedUnitResource;
-use crate::team_setup::Team;
+use crate::game::selected_unit::SelectedUnitResource;
+use crate::game::team_setup::Team;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 pub enum GameState {
