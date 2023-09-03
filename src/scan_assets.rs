@@ -7,12 +7,16 @@ use crate::nation_assets::{DynamicNationAssets, NationAssets, UnitAssets};
 pub const GENERATED_NATIONS_ASSETS_FILE: &'static str = "generated_nations.assets.ron";
 
 pub fn write_nations_assets() -> ron::Result<()> {
+    println!("Writing dynamic nations assets file...");
+
     let dynamic_nation_assets = scan_assets();
-    ron::ser::to_writer_pretty(
+    let result = ron::ser::to_writer_pretty(
         File::create(format!("assets/{GENERATED_NATIONS_ASSETS_FILE}")).unwrap(),
         &dynamic_nation_assets,
         PrettyConfig::default(),
-    )
+    );
+    println!("Done writing dynamic nations assets file: {result:?}");
+    result
 }
 
 fn scan_assets() -> DynamicNationAssets {
