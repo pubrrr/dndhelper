@@ -45,8 +45,6 @@ pub enum CombatantsResource {
     },
 }
 
-pub const ATTACK_ACTION_POINT_COST: usize = 1;
-
 pub fn handle_combat(
     mut next_round_state: ResMut<NextState<RoundState>>,
     mut units: Query<(
@@ -69,11 +67,16 @@ pub fn handle_combat(
     };
 
     let (attacker_config, _, mut action_points, attacker_unit) = units.get_mut(attacker).unwrap();
-    if action_points.left == 0 {
+    if !action_points.can_still_attack_this_turn() {
+        debug!(
+            "Skipping attack, because not possible this turn: {:?}",
+            *action_points
+        );
         *combatants_resource = CombatantsResource::NoCombat;
         return;
     }
-    action_points.left -= ATTACK_ACTION_POINT_COST;
+    action_points.left -= action_points.attack_action_point_cost();
+    action_points.attacks_this_round += 1;
     let attack_points = attacker_config.attack;
     let attacker_name = attacker_unit.0.clone();
 

@@ -43,7 +43,11 @@ pub fn setup_team_units(mut commands: Commands, nation_assets_resource: Res<Nati
             })
             .insert(Team::Red)
             .insert(UnitMarker(manf_assets.stats.name.clone()))
-            .insert(ActionPoints::with_max(manf_assets.stats.max_action_points))
+            .insert(ActionPoints::new(
+                manf_assets.stats.max_action_points,
+                manf_assets.stats.max_attacks_per_round,
+                manf_assets.stats.attack_action_point_cost,
+            ))
             .insert(HealthPoints::new(manf_assets.stats.max_health_points))
             .insert(CombatConfig {
                 attack: manf_assets.stats.attack,
@@ -60,7 +64,11 @@ pub fn setup_team_units(mut commands: Commands, nation_assets_resource: Res<Nati
             })
             .insert(UnitMarker(tree_assets.stats.name.clone()))
             .insert(Team::Blue)
-            .insert(ActionPoints::with_max(tree_assets.stats.max_action_points))
+            .insert(ActionPoints::new(
+                tree_assets.stats.max_action_points,
+                tree_assets.stats.max_attacks_per_round,
+                tree_assets.stats.attack_action_point_cost,
+            ))
             .insert(HealthPoints::new(tree_assets.stats.max_health_points))
             .insert(CombatConfig {
                 attack: tree_assets.stats.attack,

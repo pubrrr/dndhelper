@@ -99,6 +99,18 @@ pub struct UnitStats {
     pub max_health_points: usize,
     pub attack: usize,
     pub defense: usize,
+    #[serde(default = "default_attack_action_point_cost")]
+    pub attack_action_point_cost: usize,
+    #[serde(default = "default_max_attacks_per_round")]
+    pub max_attacks_per_round: usize,
+}
+
+fn default_attack_action_point_cost() -> usize {
+    2
+}
+
+pub fn default_max_attacks_per_round() -> usize {
+    1
 }
 
 #[derive(Debug, Default, Clone, States, PartialEq, Eq, Hash)]

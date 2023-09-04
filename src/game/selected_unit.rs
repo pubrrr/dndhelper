@@ -8,7 +8,6 @@ use hexx::Hex;
 use std::collections::HashSet;
 
 use crate::game::action_points::ActionPoints;
-use crate::game::combat::ATTACK_ACTION_POINT_COST;
 use crate::game::common_components::{UnitFilter, UnitMarker};
 use crate::game::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
 use crate::game::team_setup::Team;
@@ -112,7 +111,7 @@ pub fn update_selected_unit_hex(
 }
 
 pub fn update_reachable_hexes_cache(
-    units: Query<(&ActionPoints, &HexComponent, &Team), UnitFilter>,
+    units: Query<(&ActionPoints, &HexComponent, &Team, &ActionPoints), UnitFilter>,
     hexes: Query<(&HexComponent, &Terrain), With<HexMarker>>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
 ) {
@@ -126,7 +125,8 @@ pub fn update_reachable_hexes_cache(
         return;
     };
 
-    let (action_points, selected_unit_hex, selected_unit_team) = units.get(selected_unit).unwrap();
+    let (action_points, selected_unit_hex, selected_unit_team, selected_unit_action_points) =
+        units.get(selected_unit).unwrap();
 
     selected_unit_resource.cost_map = hexes
         .iter()
@@ -135,10 +135,14 @@ pub fn update_reachable_hexes_cache(
 
     selected_unit_resource
         .cost_map
-        .extend(units.iter().map(|(_, hex_component, team)| {
+        .extend(units.iter().map(|(_, hex_component, team, _)| {
             let cost = match selected_unit_hex.0.unsigned_distance_to(hex_component.0) {
                 0 => MovementCost::Passable(0),
-                1 if team != selected_unit_team => MovementCost::Passable(ATTACK_ACTION_POINT_COST),
+                1 if team != selected_unit_team
+                    && selected_unit_action_points.can_still_attack_this_turn() =>
+                {
+                    MovementCost::Passable(selected_unit_action_points.attack_action_point_cost())
+                }
                 _ => MovementCost::Impassable,
             };
             (hex_component.0, cost)

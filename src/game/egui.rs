@@ -67,6 +67,11 @@ fn display_selected_unit(
         action_points.get_max()
     ));
     ui.label(format!(
+        "Attacks this turn: {}/{}",
+        action_points.attacks_this_round,
+        action_points.get_max_attacks()
+    ));
+    ui.label(format!(
         "Health points: {}/{}",
         health_points.left,
         health_points.get_max()
