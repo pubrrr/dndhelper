@@ -4,6 +4,7 @@ use bevy_egui::EguiContexts;
 
 use crate::game::action_points::ActionPoints;
 use crate::game::combat::HealthPoints;
+use crate::game::common_components::UnitMarker;
 use crate::game::game_state::{ActiveTeam, RoundState};
 use crate::game::hex::HexComponent;
 use crate::game::hovered_hex::{HoveredHex, HoveredUnitResource};
@@ -17,7 +18,7 @@ pub fn ui_system(
     mut round_state: ResMut<NextState<RoundState>>,
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
-    units: Query<(&ActionPoints, &HealthPoints, &Team)>,
+    units: Query<(&UnitMarker, &ActionPoints, &HealthPoints, &Team)>,
     hovered_hex: Res<HoveredHex>,
     terrain_hexes: Query<(&Terrain, &HexComponent)>,
 ) {
@@ -43,7 +44,7 @@ pub fn ui_system(
 fn display_selected_unit(
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
-    units: Query<(&ActionPoints, &HealthPoints, &Team)>,
+    units: Query<(&UnitMarker, &ActionPoints, &HealthPoints, &Team)>,
     ui: &mut Ui,
 ) {
     ui.heading("Unit:");
@@ -57,7 +58,8 @@ fn display_selected_unit(
         return;
     };
 
-    let (action_points, health_points, team) = units.get(selected_unit).unwrap();
+    let (unit_marker, action_points, health_points, team) = units.get(selected_unit).unwrap();
+    ui.label(format!("Unit: {}", unit_marker.0));
     ui.label(format!("Owner: {team}"));
     ui.label(format!(
         "Action points: {}/{}",
@@ -82,7 +84,7 @@ fn display_terrain(
         return;
     };
 
-    let Some((terrain, _)) = terrain_hexes
+    let Some((terrain, hex_component)) = terrain_hexes
         .iter()
         .find(|(_, hex_component)| hex_component.0 == hovered_hex)
     else {
@@ -91,6 +93,10 @@ fn display_terrain(
         return;
     };
 
+    ui.label(format!(
+        "Coordinate: ({},{})",
+        hex_component.0.x, hex_component.0.y
+    ));
     ui.label(&terrain.name);
     ui.label(format!("Movement cost: {}", terrain.movement_cost));
 }

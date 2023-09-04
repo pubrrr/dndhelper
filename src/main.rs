@@ -12,6 +12,7 @@ use dndhelper::common::DynamicNationAssetsDefinition;
 use dndhelper::game::action_points::reset_action_points;
 use dndhelper::game::combat::{despawn_dead_units, handle_combat, CombatantsResource};
 use dndhelper::game::egui::ui_system;
+use dndhelper::game::game_log::{display_log_events, handle_log_events, LogEvent, LogRecord};
 use dndhelper::game::game_state::start_round_system;
 use dndhelper::game::game_state::{round_end_system, ActiveTeam, GameState, RoundState};
 use dndhelper::game::health_bar::{
@@ -97,6 +98,7 @@ fn main() {
             Update,
             (
                 ui_system,
+                display_log_events,
                 add_health_bars,
                 reset_selected_unit,
                 handle_selected_unit_input.run_if(in_state(RoundState::Moving)),
@@ -116,6 +118,7 @@ fn main() {
                 despawn_dead_units,
                 update_health_bar_positions,
                 update_health_bar_size,
+                handle_log_events,
             )
                 .run_if(in_state(GameState::InGame)),
         )
@@ -123,12 +126,14 @@ fn main() {
             OnEnter(RoundState::RoundEnd),
             (round_end_system, reset_action_points),
         )
+        .add_event::<LogEvent>()
         .init_resource::<ActiveTeam>()
         .init_resource::<HoveredHex>()
         .init_resource::<SelectedUnitResource>()
         .init_resource::<HoveredUnitResource>()
         .init_resource::<CombatantsResource>()
         .init_resource::<HealthBarResources>()
+        .init_resource::<LogRecord>()
         .run();
 }
 

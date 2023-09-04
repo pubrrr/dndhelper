@@ -1,11 +1,13 @@
 use std::cmp::max;
 
 use bevy::prelude::{
-    debug, info, warn, Changed, Commands, Component, DespawnRecursiveExt, Entity, NextState, Query,
-    ResMut, Resource,
+    debug, info, warn, Changed, Commands, Component, DespawnRecursiveExt, Entity, EventWriter,
+    NextState, Query, ResMut, Resource,
 };
 
 use crate::game::action_points::ActionPoints;
+use crate::game::common_components::UnitMarker;
+use crate::game::game_log::LogEvent;
 use crate::game::game_state::RoundState;
 use crate::game::util::dice::Dice;
 
@@ -47,8 +49,14 @@ pub const ATTACK_ACTION_POINT_COST: usize = 1;
 
 pub fn handle_combat(
     mut next_round_state: ResMut<NextState<RoundState>>,
-    mut units: Query<(&CombatConfig, &mut HealthPoints, &mut ActionPoints)>,
+    mut units: Query<(
+        &CombatConfig,
+        &mut HealthPoints,
+        &mut ActionPoints,
+        &UnitMarker,
+    )>,
     mut combatants_resource: ResMut<CombatantsResource>,
+    mut log_event: EventWriter<LogEvent>,
 ) {
     next_round_state.set(RoundState::Moving);
 
@@ -60,22 +68,42 @@ pub fn handle_combat(
         return;
     };
 
-    let (attacker_config, _, mut action_points) = units.get_mut(attacker).unwrap();
+    let (attacker_config, _, mut action_points, attacker_unit) = units.get_mut(attacker).unwrap();
     if action_points.left == 0 {
         *combatants_resource = CombatantsResource::NoCombat;
         return;
     }
     action_points.left -= ATTACK_ACTION_POINT_COST;
     let attack_points = attacker_config.attack;
-    let (defender_config, mut defender_health_points, _) = units.get_mut(defender).unwrap();
+    let attacker_name = attacker_unit.0.clone();
+
+    let (defender_config, mut defender_health_points, _, defender_unit) =
+        units.get_mut(defender).unwrap();
 
     let dice_roll = Dice::<20>::roll();
-    if (dice_roll as usize) < defender_config.defense {
+
+    let defender_name = &defender_unit.0;
+
+    let defense = defender_config.defense;
+    if (dice_roll as usize) >= defense {
         debug!(
             "Successful combat dice roll: {dice_roll} against {}",
             defender_config.defense
         );
         defender_health_points.left = max(defender_health_points.left - attack_points, 0);
+
+        log_event.send(LogEvent {
+            message: format!(
+                "{attacker_name} caused {attack_points} damage to {defender_name} ({dice_roll}/{defense})",
+
+            ),
+        });
+    } else {
+        log_event.send(LogEvent {
+            message: format!(
+                "{attacker_name} has failed to cause significant damage to {defender_name} ({dice_roll}/{defense})",
+            ),
+        });
     }
 
     *combatants_resource = CombatantsResource::NoCombat;

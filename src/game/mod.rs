@@ -2,6 +2,7 @@ pub mod action_points;
 pub mod combat;
 pub mod common_components;
 pub mod egui;
+pub mod game_log;
 pub mod game_state;
 pub mod health_bar;
 pub mod hex;
