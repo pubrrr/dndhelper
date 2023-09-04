@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use bevy::prelude::{
     debug, Changed, ColorMaterial, Commands, Component, DetectChanges, Entity, Handle, Input,
     KeyCode, Query, Res, ResMut, Resource, With, Without,
@@ -5,7 +7,6 @@ use bevy::prelude::{
 use bevy::utils::HashMap;
 use hexx::algorithms::field_of_movement;
 use hexx::Hex;
-use std::collections::HashSet;
 
 use crate::game::action_points::ActionPoints;
 use crate::game::common_components::{UnitFilter, UnitMarker};
@@ -138,23 +139,30 @@ pub fn update_reachable_hexes_cache(
         .extend(units.iter().map(|(_, hex_component, team, _)| {
             let cost = match selected_unit_hex.0.unsigned_distance_to(hex_component.0) {
                 0 => MovementCost::Passable(0),
-                1 if team != selected_unit_team
-                    && selected_unit_action_points.can_still_attack_this_turn() =>
-                {
-                    MovementCost::Passable(selected_unit_action_points.attack_action_point_cost())
-                }
                 _ => MovementCost::Impassable,
             };
             (hex_component.0, cost)
         }));
 
-    let reachable_hexes =
+    let mut reachable_hexes =
         field_of_movement(selected_unit_hex.0, action_points.left as u32, |hex| {
             selected_unit_resource
                 .cost_map
                 .get(&hex)
                 .and_then(|movement_cost| movement_cost.get_modified_algorithm_cost())
         });
+
+    if selected_unit_action_points.can_still_attack_this_turn() {
+        let attackable_units = units
+            .iter()
+            .filter(|(_, _, team, _)| team != &selected_unit_team)
+            .filter(|(_, hex_component, _, _)| {
+                selected_unit_hex.0.unsigned_distance_to(hex_component.0) == 1
+            })
+            .map(|(_, hex_component, _, _)| hex_component.0);
+
+        reachable_hexes.extend(attackable_units);
+    }
 
     selected_unit_resource.reachable_hexes = Some(reachable_hexes);
     selected_unit_resource.recompute_cache = false;
