@@ -5,7 +5,7 @@ pub mod pick_nation;
 
 use crate::game::nation_asset_resource::NationKey;
 use crate::game::team_setup::Team;
-use bevy::prelude::{NextState, ResMut, Resource, States};
+use bevy::prelude::{NextState, ResMut, Resource, State, States};
 use bevy::utils::HashMap;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
@@ -21,15 +21,20 @@ pub enum InGameState {
 
 #[derive(Resource, Debug, Default)]
 pub struct PickedNationsResource {
-    nations_by_player: HashMap<Team, PickedNation>,
+    pub nations_by_player: HashMap<Team, PickedNation>,
 }
 
 #[derive(Debug)]
 pub struct PickedNation {
-    nation: NationKey,
+    pub nation: NationKey,
     // commander:
 }
 
-pub fn start_game(mut in_game_state: ResMut<NextState<InGameState>>) {
-    in_game_state.set(InGameState::PickNation)
+pub fn start_game(
+    in_game_state: ResMut<State<InGameState>>,
+    mut next_in_game_state: ResMut<NextState<InGameState>>,
+) {
+    if in_game_state.get() == &InGameState::Starting {
+        next_in_game_state.set(InGameState::PickNation);
+    }
 }

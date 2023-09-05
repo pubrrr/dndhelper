@@ -39,6 +39,7 @@ use dndhelper::game::states::in_game_state::pick_nation::{
 use dndhelper::game::states::in_game_state::{start_game, InGameState, PickedNationsResource};
 use dndhelper::game::states::round_state::start_round_system;
 use dndhelper::game::states::round_state::{round_end_system, ActiveTeam, RoundState};
+use dndhelper::game::team_setup::{quickstart, QuickstartState};
 #[cfg(not(target_family = "wasm"))]
 use dndhelper::scan_assets::write_nations_assets;
 use dndhelper::scan_assets::GENERATED_NATIONS_ASSETS_FILE;
@@ -52,7 +53,7 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(bevy::window::Window {
-                        resolution: (1000., 1000.).into(),
+                        resolution: (1200., 600.).into(),
                         ..default()
                     }),
                     ..default()
@@ -92,8 +93,10 @@ fn main() {
         .add_state::<GameState>()
         .add_state::<InGameState>()
         .add_state::<RoundState>()
+        .add_state::<QuickstartState>()
         .add_systems(Startup, setup_camera)
         .add_systems(OnEnter(LoadingState::Done), insert_nation_assets_resource)
+        .add_systems(OnEnter(QuickstartState::DoIt), (setup_hex_grid, quickstart))
         .add_systems(OnEnter(GameState::InGame), start_game)
         .add_systems(
             Update,

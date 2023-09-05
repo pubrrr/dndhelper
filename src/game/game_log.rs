@@ -1,4 +1,4 @@
-use bevy::prelude::{debug, DetectChanges, Event, EventReader, Local, Res, ResMut, Resource};
+use bevy::prelude::{debug, DetectChanges, Event, EventReader, Res, ResMut, Resource};
 use bevy_egui::egui::{Align, ScrollArea, Window};
 use bevy_egui::EguiContexts;
 
