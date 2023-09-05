@@ -8,7 +8,6 @@ pub enum RoundState {
     #[default]
     Paused,
     Moving,
-    Combat,
     RoundEnd,
 }
 

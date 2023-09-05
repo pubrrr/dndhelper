@@ -10,7 +10,7 @@ use bevy_egui::EguiPlugin;
 
 use dndhelper::common::DynamicNationAssetsDefinition;
 use dndhelper::game::action_points::reset_action_points;
-use dndhelper::game::combat::{despawn_dead_units, handle_combat, CombatantsResource};
+use dndhelper::game::combat::CombatPlugin;
 use dndhelper::game::egui::ui_system;
 use dndhelper::game::game_log::{display_log_events, handle_log_events, LogEvent, LogRecord};
 use dndhelper::game::health_bar::{
@@ -66,6 +66,7 @@ fn main() {
             RonAssetPlugin::<UnitStats>::new(&["stats.ron"]),
             EguiPlugin,
             DeployUnitsPlugin,
+            CombatPlugin,
         ))
         .add_loading_state(
             bevy_asset_loader::loading_state::LoadingState::new(LoadingState::LoadingDynamicAssets)
@@ -125,7 +126,6 @@ fn main() {
                 reset_selected_unit,
                 handle_selected_unit_input.run_if(in_state(RoundState::Moving)),
                 update_hovered_unit.run_if(in_state(RoundState::Moving)),
-                handle_combat.run_if(in_state(RoundState::Combat)),
             )
                 .run_if(in_state(InGameState::Playing)),
         )
@@ -136,7 +136,6 @@ fn main() {
                 update_selected_unit_hex,
                 update_reachable_hexes_cache,
                 update_hex_overlay,
-                despawn_dead_units,
                 update_health_bar_positions,
                 update_health_bar_size,
                 handle_log_events,
@@ -153,7 +152,6 @@ fn main() {
         .init_resource::<HoveredHex>()
         .init_resource::<SelectedUnitResource>()
         .init_resource::<HoveredUnitResource>()
-        .init_resource::<CombatantsResource>()
         .init_resource::<HealthBarResources>()
         .init_resource::<LogRecord>()
         .init_resource::<PickedNationsResource>()

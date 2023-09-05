@@ -1,15 +1,27 @@
 use std::cmp::max;
 
+use bevy::app::App;
 use bevy::prelude::{
-    debug, info, warn, Changed, Commands, Component, DespawnRecursiveExt, Entity, EventWriter,
-    NextState, Query, ResMut, Resource,
+    debug, in_state, info, Changed, Commands, Component, DespawnRecursiveExt, Entity, Event,
+    EventReader, EventWriter, IntoSystemConfigs, Plugin, PostUpdate, Query,
 };
 
-use crate::game::action_points::ActionPoints;
 use crate::game::common_components::UnitMarker;
 use crate::game::game_log::LogEvent;
-use crate::game::states::round_state::RoundState;
+use crate::game::states::in_game_state::InGameState;
 use crate::game::util::dice::Dice;
+
+pub struct CombatPlugin;
+
+impl Plugin for CombatPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            PostUpdate,
+            (handle_combat, despawn_dead_units).run_if(in_state(InGameState::Playing)),
+        )
+        .add_event::<CombatEvent>();
+    }
+}
 
 #[derive(Component, Debug)]
 pub struct HealthPoints {
@@ -35,53 +47,34 @@ pub struct CombatConfig {
     pub defense: usize,
 }
 
-#[derive(Resource, Debug, Default)]
-pub enum CombatantsResource {
-    #[default]
-    NoCombat,
-    Combatants {
-        attacker: Entity,
-        defender: Entity,
-    },
+#[derive(Event, Debug)]
+pub struct CombatEvent {
+    pub attacker: Entity,
+    pub defender: Entity,
 }
 
-pub fn handle_combat(
-    mut next_round_state: ResMut<NextState<RoundState>>,
-    mut units: Query<(
-        &CombatConfig,
-        &mut HealthPoints,
-        &mut ActionPoints,
-        &UnitMarker,
-    )>,
-    mut combatants_resource: ResMut<CombatantsResource>,
+fn handle_combat(
+    mut units: Query<(&CombatConfig, &mut HealthPoints, &UnitMarker)>,
+    mut combat_events: EventReader<CombatEvent>,
     mut log_event: EventWriter<LogEvent>,
 ) {
-    next_round_state.set(RoundState::Moving);
-
-    let CombatantsResource::Combatants { attacker, defender } = *combatants_resource else {
-        warn!(
-            "Expected combatants, found {:?} - skipping combat",
-            *combatants_resource
-        );
-        return;
-    };
-
-    let (attacker_config, _, mut action_points, attacker_unit) = units.get_mut(attacker).unwrap();
-    if !action_points.can_still_attack_this_turn() {
-        debug!(
-            "Skipping attack, because not possible this turn: {:?}",
-            *action_points
-        );
-        *combatants_resource = CombatantsResource::NoCombat;
-        return;
+    for combat_event in combat_events.iter() {
+        handle_combat_event(&mut units, &mut log_event, combat_event);
     }
-    action_points.left -= action_points.attack_action_point_cost();
-    action_points.attacks_this_round += 1;
+}
+
+fn handle_combat_event(
+    units: &mut Query<(&CombatConfig, &mut HealthPoints, &UnitMarker)>,
+    log_event: &mut EventWriter<LogEvent>,
+    combat_event: &CombatEvent,
+) {
+    let (attacker_config, _, attacker_unit) = units.get_mut(combat_event.attacker).unwrap();
+
     let attack_points = attacker_config.attack;
     let attacker_name = attacker_unit.0.clone();
 
-    let (defender_config, mut defender_health_points, _, defender_unit) =
-        units.get_mut(defender).unwrap();
+    let (defender_config, mut defender_health_points, defender_unit) =
+        units.get_mut(combat_event.defender).unwrap();
 
     let dice_roll = Dice::<20>::roll();
 
@@ -98,7 +91,6 @@ pub fn handle_combat(
         log_event.send(LogEvent {
             message: format!(
                 "{attacker_name} caused {attack_points} damage to {defender_name} ({dice_roll}/{defense})",
-
             ),
         });
     } else {
@@ -108,11 +100,9 @@ pub fn handle_combat(
             ),
         });
     }
-
-    *combatants_resource = CombatantsResource::NoCombat;
 }
 
-pub fn despawn_dead_units(
+fn despawn_dead_units(
     mut commands: Commands,
     units: Query<(Entity, &HealthPoints), Changed<HealthPoints>>,
 ) {

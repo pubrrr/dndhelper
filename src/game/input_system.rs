@@ -1,14 +1,16 @@
-use bevy::prelude::{debug, warn, Entity, Input, MouseButton, NextState, Query, Res, ResMut, With};
+use bevy::prelude::{
+    debug, warn, Entity, EventWriter, Input, MouseButton, Query, Res, ResMut, With,
+};
 use hexx::algorithms::a_star;
 
 use crate::game::action_points::ActionPoints;
-use crate::game::combat::CombatantsResource;
+use crate::game::combat::CombatEvent;
 use crate::game::common_components::UnitFilter;
 use crate::game::hex::{HexComponent, HexMarker};
 use crate::game::hovered_hex::HoveredHex;
 use crate::game::hovered_hex::HoveredUnitResource;
 use crate::game::selected_unit::SelectedUnitResource;
-use crate::game::states::round_state::{ActiveTeam, RoundState};
+use crate::game::states::round_state::ActiveTeam;
 use crate::game::team_setup::Team;
 use crate::game::terrain::{MovementCost, Terrain};
 
@@ -19,8 +21,7 @@ pub fn handle_selected_unit_input(
     hexes: Query<(&HexComponent, &Terrain), With<HexMarker>>,
     active_team: Res<ActiveTeam>,
     hovered_hex: Res<HoveredHex>,
-    mut next_round_state: ResMut<NextState<RoundState>>,
-    mut combatants_resource: ResMut<CombatantsResource>,
+    mut combat_event: EventWriter<CombatEvent>,
 ) {
     if !buttons.just_pressed(MouseButton::Left) {
         return;
@@ -42,16 +43,19 @@ pub fn handle_selected_unit_input(
             return;
         };
 
-        let (_, selected_unit_hex, _, _) = units.get(selected_unit).unwrap();
+        let (_, selected_unit_hex, _, action_points) = units.get(selected_unit).unwrap();
         let distance = hovered_entity_hex
             .0
             .unsigned_distance_to(selected_unit_hex.0);
-        if distance == 1 {
-            next_round_state.set(RoundState::Combat);
-            *combatants_resource = CombatantsResource::Combatants {
+        if distance == 1 && action_points.can_still_attack_this_turn() {
+            combat_event.send(CombatEvent {
                 attacker: selected_unit,
                 defender: hovered_entity,
-            }
+            });
+
+            let (_, _, _, mut action_points) = units.get_mut(selected_unit).unwrap();
+            action_points.left -= action_points.attack_action_point_cost();
+            action_points.attacks_this_round += 1;
         }
         return;
     }
