@@ -8,7 +8,7 @@ use bevy::prelude::{
 use crate::game::action_points::ActionPoints;
 use crate::game::common_components::UnitMarker;
 use crate::game::game_log::LogEvent;
-use crate::game::game_state::RoundState;
+use crate::game::states::round_state::RoundState;
 use crate::game::util::dice::Dice;
 
 #[derive(Component, Debug)]

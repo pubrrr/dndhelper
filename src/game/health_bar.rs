@@ -98,14 +98,7 @@ pub fn add_health_bars(
 
 pub fn update_health_bar_positions(
     mut commands: Commands,
-    #[allow(clippy::type_complexity)] entities_with_health: Query<
-        &Transform,
-        (
-            With<HealthPoints>,
-            Without<HealthBarForEntity>,
-            Changed<Transform>,
-        ),
-    >,
+    entities_with_health: Query<&Transform, (With<HealthPoints>, Without<HealthBarForEntity>)>,
     mut health_bar_entities: Query<(Entity, &HealthBarForEntity, &mut Transform)>,
 ) {
     for (health_bar_entity, for_entity, mut health_bar_transform) in health_bar_entities.iter_mut()

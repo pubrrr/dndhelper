@@ -1,7 +1,7 @@
 use bevy::log::{Level, LogPlugin};
 use bevy::prelude::{
-    default, in_state, App, Camera2dBundle, Commands, IntoSystemConfigs, OnEnter, PluginGroup,
-    PostUpdate, PreUpdate, Startup, Update, WindowPlugin,
+    default, in_state, App, Camera2dBundle, Commands, Condition, IntoSystemConfigs, OnEnter,
+    PluginGroup, PostUpdate, PreUpdate, Startup, Update, WindowPlugin,
 };
 use bevy::DefaultPlugins;
 use bevy_asset_loader::prelude::LoadingStateAppExt;
@@ -13,8 +13,6 @@ use dndhelper::game::action_points::reset_action_points;
 use dndhelper::game::combat::{despawn_dead_units, handle_combat, CombatantsResource};
 use dndhelper::game::egui::ui_system;
 use dndhelper::game::game_log::{display_log_events, handle_log_events, LogEvent, LogRecord};
-use dndhelper::game::game_state::start_round_system;
-use dndhelper::game::game_state::{round_end_system, ActiveTeam, GameState, RoundState};
 use dndhelper::game::health_bar::{
     add_health_bars, update_health_bar_positions, update_health_bar_size, HealthBarResources,
 };
@@ -31,7 +29,16 @@ use dndhelper::game::selected_unit::{
     check_whether_selected_unit_needs_recomputation, reset_selected_unit, update_hex_overlay,
     update_reachable_hexes_cache, update_selected_unit_hex, SelectedUnitResource,
 };
-use dndhelper::game::team_setup::setup_team_units;
+use dndhelper::game::states::game_state::GameState;
+use dndhelper::game::states::in_game_state::deploy_units::DeployUnitsPlugin;
+use dndhelper::game::states::in_game_state::events::skip_events;
+use dndhelper::game::states::in_game_state::pick_commander::skip_pick_commander;
+use dndhelper::game::states::in_game_state::pick_nation::{
+    handle_pick_nation_event, pick_nation_menu, PickNationEvent,
+};
+use dndhelper::game::states::in_game_state::{start_game, InGameState, PickedNationsResource};
+use dndhelper::game::states::round_state::start_round_system;
+use dndhelper::game::states::round_state::{round_end_system, ActiveTeam, RoundState};
 #[cfg(not(target_family = "wasm"))]
 use dndhelper::scan_assets::write_nations_assets;
 use dndhelper::scan_assets::GENERATED_NATIONS_ASSETS_FILE;
@@ -57,6 +64,7 @@ fn main() {
             RonAssetPlugin::<DynamicNationAssetsDefinition>::new(&["assets.ron"]),
             RonAssetPlugin::<UnitStats>::new(&["stats.ron"]),
             EguiPlugin,
+            DeployUnitsPlugin,
         ))
         .add_loading_state(
             bevy_asset_loader::loading_state::LoadingState::new(LoadingState::LoadingDynamicAssets)
@@ -82,16 +90,27 @@ fn main() {
         )
         .add_state::<LoadingState>()
         .add_state::<GameState>()
+        .add_state::<InGameState>()
         .add_state::<RoundState>()
         .add_systems(Startup, setup_camera)
         .add_systems(OnEnter(LoadingState::Done), insert_nation_assets_resource)
+        .add_systems(OnEnter(GameState::InGame), start_game)
         .add_systems(
-            OnEnter(GameState::InGame),
-            (setup_hex_grid, setup_team_units, start_round_system),
+            Update,
+            pick_nation_menu.run_if(in_state(InGameState::PickNation)),
         )
         .add_systems(
+            PostUpdate,
+            handle_pick_nation_event.run_if(in_state(InGameState::PickNation)),
+        )
+        .add_systems(OnEnter(InGameState::PickCommander), skip_pick_commander)
+        .add_systems(OnEnter(InGameState::Events), skip_events)
+        .add_systems(OnEnter(InGameState::DeployUnits), setup_hex_grid)
+        .add_systems(OnEnter(InGameState::Playing), start_round_system)
+        .add_systems(
             PreUpdate,
-            update_hovered_hex.run_if(in_state(RoundState::Moving)),
+            (update_transform_from_hex, update_hovered_hex)
+                .run_if(in_state(RoundState::Moving).or_else(in_state(InGameState::DeployUnits))),
         )
         .add_systems(Update, menu_ui.run_if(in_state(GameState::Loading)))
         .add_systems(
@@ -105,13 +124,12 @@ fn main() {
                 update_hovered_unit.run_if(in_state(RoundState::Moving)),
                 handle_combat.run_if(in_state(RoundState::Combat)),
             )
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(InGameState::Playing)),
         )
         .add_systems(
             PostUpdate,
             (
                 check_whether_selected_unit_needs_recomputation,
-                update_transform_from_hex,
                 update_selected_unit_hex,
                 update_reachable_hexes_cache,
                 update_hex_overlay,
@@ -120,13 +138,14 @@ fn main() {
                 update_health_bar_size,
                 handle_log_events,
             )
-                .run_if(in_state(GameState::InGame)),
+                .run_if(in_state(InGameState::Playing)),
         )
         .add_systems(
             OnEnter(RoundState::RoundEnd),
             (round_end_system, reset_action_points),
         )
         .add_event::<LogEvent>()
+        .add_event::<PickNationEvent>()
         .init_resource::<ActiveTeam>()
         .init_resource::<HoveredHex>()
         .init_resource::<SelectedUnitResource>()
@@ -134,6 +153,7 @@ fn main() {
         .init_resource::<CombatantsResource>()
         .init_resource::<HealthBarResources>()
         .init_resource::<LogRecord>()
+        .init_resource::<PickedNationsResource>()
         .run();
 }
 

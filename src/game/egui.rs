@@ -5,10 +5,10 @@ use bevy_egui::EguiContexts;
 use crate::game::action_points::ActionPoints;
 use crate::game::combat::HealthPoints;
 use crate::game::common_components::UnitMarker;
-use crate::game::game_state::{ActiveTeam, RoundState};
 use crate::game::hex::HexComponent;
 use crate::game::hovered_hex::{HoveredHex, HoveredUnitResource};
 use crate::game::selected_unit::SelectedUnitResource;
+use crate::game::states::round_state::{ActiveTeam, RoundState};
 use crate::game::team_setup::Team;
 use crate::game::terrain::Terrain;
 

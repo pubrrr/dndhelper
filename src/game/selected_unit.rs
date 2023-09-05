@@ -136,7 +136,7 @@ pub fn update_reachable_hexes_cache(
 
     selected_unit_resource
         .cost_map
-        .extend(units.iter().map(|(_, hex_component, team, _)| {
+        .extend(units.iter().map(|(_, hex_component, _, _)| {
             let cost = match selected_unit_hex.0.unsigned_distance_to(hex_component.0) {
                 0 => MovementCost::Passable(0),
                 _ => MovementCost::Impassable,

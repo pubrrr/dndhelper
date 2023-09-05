@@ -4,13 +4,6 @@ use crate::game::selected_unit::SelectedUnitResource;
 use crate::game::team_setup::Team;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
-pub enum GameState {
-    #[default]
-    Loading,
-    InGame,
-}
-
-#[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 pub enum RoundState {
     #[default]
     Paused,

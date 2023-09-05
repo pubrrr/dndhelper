@@ -1,5 +1,5 @@
-use bevy::prelude::{Event, EventReader, Res, ResMut, Resource};
-use bevy_egui::egui::{ScrollArea, Window};
+use bevy::prelude::{debug, DetectChanges, Event, EventReader, Local, Res, ResMut, Resource};
+use bevy_egui::egui::{Align, ScrollArea, Window};
 use bevy_egui::EguiContexts;
 
 #[derive(Event, Debug, Clone)]
@@ -25,6 +25,10 @@ pub fn display_log_events(mut contexts: EguiContexts, log_record: Res<LogRecord>
             ScrollArea::both().show(ui, |ui| {
                 for log_event in log_record.storage.iter() {
                     ui.label(&log_event.message);
+                }
+                if log_record.is_changed() {
+                    debug!("Scrolling to bottom of logs");
+                    ui.scroll_to_cursor(Some(Align::BOTTOM));
                 }
             });
         });

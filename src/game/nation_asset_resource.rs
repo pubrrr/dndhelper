@@ -31,6 +31,17 @@ impl NationAssetsResource {
             .collect()
     }
 
+    pub fn get_nation(&self, nation_key: &NationKey) -> Nation {
+        self.nation_assets_definition
+            .iter()
+            .find(|nation_assets| nation_assets.path == nation_key.0)
+            .map(|nation_assets| Nation {
+                name: nation_assets.path.to_string(),
+                key: NationKey(nation_assets.path.to_string()),
+            })
+            .unwrap()
+    }
+
     pub fn get_units(&self, nation_key: &NationKey) -> Vec<UnitKey> {
         self.nation_assets_definition
             .iter()
@@ -58,6 +69,7 @@ pub struct Nation {
     pub key: NationKey,
 }
 
+#[derive(Debug, Clone)]
 pub struct NationKey(String);
 
 pub fn insert_nation_assets_resource(

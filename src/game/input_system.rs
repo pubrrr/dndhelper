@@ -4,11 +4,11 @@ use hexx::algorithms::a_star;
 use crate::game::action_points::ActionPoints;
 use crate::game::combat::CombatantsResource;
 use crate::game::common_components::UnitFilter;
-use crate::game::game_state::{ActiveTeam, RoundState};
 use crate::game::hex::{HexComponent, HexMarker};
 use crate::game::hovered_hex::HoveredHex;
 use crate::game::hovered_hex::HoveredUnitResource;
 use crate::game::selected_unit::SelectedUnitResource;
+use crate::game::states::round_state::{ActiveTeam, RoundState};
 use crate::game::team_setup::Team;
 use crate::game::terrain::{MovementCost, Terrain};
 
