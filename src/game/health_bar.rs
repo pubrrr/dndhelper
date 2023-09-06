@@ -1,13 +1,15 @@
 use bevy::prelude::shape::Quad;
 use bevy::prelude::{
-    default, info, warn, Added, Assets, BuildChildren, Changed, Children, Color, ColorMaterial,
-    ColorMesh2dBundle, Commands, Component, DespawnRecursiveExt, Entity, FromWorld, Handle, Mesh,
-    Query, Res, Resource, SpriteBundle, Transform, Vec3, With, Without, World,
+    debug, default, info, warn, Added, Assets, BuildChildren, Changed, Children, Color,
+    ColorMaterial, ColorMesh2dBundle, Commands, Component, DespawnRecursiveExt, Entity, FromWorld,
+    Handle, Mesh, Query, Res, ResMut, Resource, SpriteBundle, Transform, Vec3, With, Without,
+    World,
 };
 use bevy::sprite::Mesh2dHandle;
 
 use crate::game::combat::HealthPoints;
 use crate::game::hex::HEX_RADIUS;
+use crate::game::selected_unit::SelectedUnitResource;
 use crate::game::z_ordering::ZOrdering;
 
 const MAX_Y_SCALE: f32 = 0.9;
@@ -100,6 +102,7 @@ pub fn update_health_bar_positions(
     mut commands: Commands,
     entities_with_health: Query<&Transform, (With<HealthPoints>, Without<HealthBarForEntity>)>,
     mut health_bar_entities: Query<(Entity, &HealthBarForEntity, &mut Transform)>,
+    mut selected_unit_resource: ResMut<SelectedUnitResource>,
 ) {
     for (health_bar_entity, for_entity, mut health_bar_transform) in health_bar_entities.iter_mut()
     {
@@ -109,6 +112,14 @@ pub fn update_health_bar_positions(
             Err(_) => {
                 info!("Entity {unit_entity:?} for health bar not found, removing it");
                 commands.entity(health_bar_entity).despawn_recursive();
+
+                let Some(selected_unit) = selected_unit_resource.selected_unit() else {
+                    continue;
+                };
+                if selected_unit == unit_entity {
+                    debug!("Resetting selected unit because it died");
+                    selected_unit_resource.set_selected_unit(None);
+                }
                 continue;
             }
         };

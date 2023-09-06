@@ -73,8 +73,13 @@ fn display_selected_unit(
         return;
     };
 
-    let (unit_marker, action_points, health_points, team, unit_status, combat_config) =
-        units.get(selected_unit).unwrap();
+    let Ok((unit_marker, action_points, health_points, team, unit_status, combat_config)) =
+        units.get(selected_unit)
+    else {
+        ui.label("-");
+        return;
+    };
+
     ui.label(format!("Unit: {}", unit_marker.0));
     ui.label(format!("Owner: {team}"));
     ui.label(format!(

@@ -95,7 +95,9 @@ pub fn update_selected_unit_hex(
     }
 
     if let Some(selected_unit) = selected_unit_resource.selected_unit {
-        let selected_unit_hex_component = units.get(selected_unit).unwrap();
+        let Ok(selected_unit_hex_component) = units.get(selected_unit) else {
+            return;
+        };
         let (entity, mut hex_hex_component, marker, _) = selected_unit_hex_query.single_mut();
 
         hex_hex_component.0 = selected_unit_hex_component.0;
@@ -136,13 +138,16 @@ pub fn update_reachable_hexes_cache(
         return;
     };
 
-    let (
+    let Ok((
         action_points,
         selected_unit_hex,
         selected_unit_team,
         selected_unit_action_points,
         selected_unit_combat_config,
-    ) = units.get(selected_unit).unwrap();
+    )) = units.get(selected_unit)
+    else {
+        return;
+    };
 
     selected_unit_resource.cost_map = hexes
         .iter()

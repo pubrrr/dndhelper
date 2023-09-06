@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use bevy::app::App;
 use bevy::prelude::{
     debug, in_state, info, Changed, Commands, Component, DespawnRecursiveExt, Entity, Event,
@@ -87,7 +85,11 @@ fn handle_combat_event(
             "Successful combat dice roll: {dice_roll} against {}",
             defender_config.defense
         );
-        defender_health_points.left = max(defender_health_points.left - attack_points, 0);
+        defender_health_points.left = if attack_points >= defender_health_points.left {
+            0
+        } else {
+            defender_health_points.left - attack_points
+        };
 
         log_event.send(LogEvent {
             message: format!(

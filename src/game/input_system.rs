@@ -56,8 +56,12 @@ pub fn handle_selected_unit_input(
             return;
         };
 
-        let (_, selected_unit_hex, _, action_points, _, combat_config) =
-            units.get(selected_unit).unwrap();
+        let Ok((_, selected_unit_hex, _, action_points, _, combat_config)) =
+            units.get(selected_unit)
+        else {
+            return;
+        };
+
         let distance = hovered_entity_hex
             .0
             .unsigned_distance_to(selected_unit_hex.0);
