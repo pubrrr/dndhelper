@@ -11,6 +11,7 @@ use crate::game::selected_unit::SelectedUnitResource;
 use crate::game::states::round_state::{ActiveTeam, RoundState};
 use crate::game::team_setup::Team;
 use crate::game::terrain::Terrain;
+use crate::game::unit_status::UnitStatus;
 
 pub fn ui_system(
     mut contexts: EguiContexts,
@@ -18,7 +19,13 @@ pub fn ui_system(
     mut round_state: ResMut<NextState<RoundState>>,
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
-    units: Query<(&UnitMarker, &ActionPoints, &HealthPoints, &Team)>,
+    units: Query<(
+        &UnitMarker,
+        &ActionPoints,
+        &HealthPoints,
+        &Team,
+        &UnitStatus,
+    )>,
     hovered_hex: Res<HoveredHex>,
     terrain_hexes: Query<(&Terrain, &HexComponent)>,
 ) {
@@ -44,7 +51,13 @@ pub fn ui_system(
 fn display_selected_unit(
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
-    units: Query<(&UnitMarker, &ActionPoints, &HealthPoints, &Team)>,
+    units: Query<(
+        &UnitMarker,
+        &ActionPoints,
+        &HealthPoints,
+        &Team,
+        &UnitStatus,
+    )>,
     ui: &mut Ui,
 ) {
     ui.heading("Unit:");
@@ -58,7 +71,8 @@ fn display_selected_unit(
         return;
     };
 
-    let (unit_marker, action_points, health_points, team) = units.get(selected_unit).unwrap();
+    let (unit_marker, action_points, health_points, team, unit_status) =
+        units.get(selected_unit).unwrap();
     ui.label(format!("Unit: {}", unit_marker.0));
     ui.label(format!("Owner: {team}"));
     ui.label(format!(
@@ -76,6 +90,7 @@ fn display_selected_unit(
         health_points.left,
         health_points.get_max()
     ));
+    ui.label(format!("Status: {unit_status:#?}"));
 }
 
 fn display_terrain(

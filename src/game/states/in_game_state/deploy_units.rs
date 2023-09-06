@@ -19,6 +19,7 @@ use crate::game::states::in_game_state::{InGameState, PickedNationsResource};
 use crate::game::states::round_state::ActiveTeam;
 use crate::game::team_setup::Team;
 use crate::game::terrain::{MovementCost, Terrain};
+use crate::game::unit_status::UnitStatus;
 use crate::game::z_ordering::ZOrdering;
 
 pub struct DeployUnitsPlugin;
@@ -204,6 +205,7 @@ fn handle_deploy_unit_event(
             })
             .insert(event.player)
             .insert(UnitMarker(unit_assets.stats.name.clone()))
+            .insert(UnitStatus::new())
             .insert(ActionPoints::new(
                 unit_assets.stats.max_action_points,
                 unit_assets.stats.max_attacks_per_round,

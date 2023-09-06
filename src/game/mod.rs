@@ -15,5 +15,6 @@ pub mod selected_unit;
 pub mod states;
 pub mod team_setup;
 pub mod terrain;
+pub mod unit_status;
 pub mod util;
 pub mod z_ordering;

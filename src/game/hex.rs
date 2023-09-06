@@ -88,6 +88,7 @@ pub fn setup_hex_grid(
             mesh: mesh.clone().into(),
             transform: Transform::from_xyz(0., 0., ZOrdering::SELECTED_UNIT_HEX)
                 .with_scale(Vec3::splat(1.)),
+            material: materials.add(Color::NONE.into()),
             ..default()
         })
         .insert(HexComponent(Hex::ZERO))

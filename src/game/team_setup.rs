@@ -14,6 +14,7 @@ use crate::game::nation_asset_resource::NationAssetsResource;
 use crate::game::states::in_game_state::PickedNation;
 use crate::game::states::in_game_state::{InGameState, PickedNationsResource};
 use crate::game::states::round_state::RoundState;
+use crate::game::unit_status::UnitStatus;
 use crate::game::z_ordering::ZOrdering;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
@@ -76,6 +77,7 @@ pub fn quickstart(
                 ..default()
             })
             .insert(Team::Red)
+            .insert(UnitStatus::new())
             .insert(UnitMarker(manf_assets.stats.name.clone()))
             .insert(ActionPoints::new(
                 manf_assets.stats.max_action_points,
@@ -98,6 +100,7 @@ pub fn quickstart(
             })
             .insert(UnitMarker(tree_assets.stats.name.clone()))
             .insert(Team::Blue)
+            .insert(UnitStatus::new())
             .insert(ActionPoints::new(
                 tree_assets.stats.max_action_points,
                 tree_assets.stats.max_attacks_per_round,

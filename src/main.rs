@@ -40,6 +40,7 @@ use dndhelper::game::states::in_game_state::{start_game, InGameState, PickedNati
 use dndhelper::game::states::round_state::start_round_system;
 use dndhelper::game::states::round_state::{round_end_system, ActiveTeam, RoundState};
 use dndhelper::game::team_setup::{quickstart, QuickstartState};
+use dndhelper::game::unit_status::disengage_apart_units;
 #[cfg(not(target_family = "wasm"))]
 use dndhelper::scan_assets::write_nations_assets;
 use dndhelper::scan_assets::GENERATED_NATIONS_ASSETS_FILE;
@@ -118,6 +119,10 @@ fn main() {
         )
         .add_systems(Update, menu_ui.run_if(in_state(GameState::Loading)))
         .add_systems(
+            PreUpdate,
+            update_reachable_hexes_cache.run_if(in_state(InGameState::Playing)),
+        )
+        .add_systems(
             Update,
             (
                 ui_system,
@@ -134,11 +139,11 @@ fn main() {
             (
                 check_whether_selected_unit_needs_recomputation,
                 update_selected_unit_hex,
-                update_reachable_hexes_cache,
                 update_hex_overlay,
                 update_health_bar_positions,
                 update_health_bar_size,
                 handle_log_events,
+                disengage_apart_units,
             )
                 .run_if(in_state(InGameState::Playing)),
         )
