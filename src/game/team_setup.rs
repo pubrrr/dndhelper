@@ -64,11 +64,14 @@ pub fn quickstart(
         },
     );
 
-    let manf_unit_key = &nation_assets_resource.get_units(&nations[1].key)[0];
-    let manf_assets = nation_assets_resource.get_unit_assets(manf_unit_key);
-    let tree_unit_key = &nation_assets_resource.get_units(&nations[0].key)[0];
-    let tree_assets = nation_assets_resource.get_unit_assets(tree_unit_key);
+    let manf_unit_keys = &nation_assets_resource.get_units(&nations[1].key);
+    let tree_unit_keys = &nation_assets_resource.get_units(&nations[0].key);
     for i in 0..5 {
+        let manf_assets =
+            nation_assets_resource.get_unit_assets(&manf_unit_keys[i % manf_unit_keys.len()]);
+        let tree_assets =
+            nation_assets_resource.get_unit_assets(&tree_unit_keys[i % tree_unit_keys.len()]);
+
         commands
             .spawn(SpriteBundle {
                 texture: manf_assets.image.clone(),
@@ -88,8 +91,9 @@ pub fn quickstart(
             .insert(CombatConfig {
                 attack: manf_assets.stats.attack,
                 defense: manf_assets.stats.defense,
+                range: manf_assets.stats.range,
             })
-            .insert(HexComponent(Hex::new(4, i - 4)));
+            .insert(HexComponent(Hex::new(4, i as i32 - 4)));
 
         commands
             .spawn(SpriteBundle {
@@ -110,7 +114,8 @@ pub fn quickstart(
             .insert(CombatConfig {
                 attack: tree_assets.stats.attack,
                 defense: tree_assets.stats.defense,
+                range: tree_assets.stats.range,
             })
-            .insert(HexComponent(Hex::new(-4, i)));
+            .insert(HexComponent(Hex::new(-4, i as i32)));
     }
 }

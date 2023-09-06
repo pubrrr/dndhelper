@@ -103,6 +103,8 @@ pub struct UnitStats {
     pub attack_action_point_cost: usize,
     #[serde(default = "default_max_attacks_per_round")]
     pub max_attacks_per_round: usize,
+    #[serde(default = "default_range")]
+    pub range: u32,
 }
 
 fn default_attack_action_point_cost() -> usize {
@@ -110,6 +112,10 @@ fn default_attack_action_point_cost() -> usize {
 }
 
 pub fn default_max_attacks_per_round() -> usize {
+    1
+}
+
+pub fn default_range() -> u32 {
     1
 }
 

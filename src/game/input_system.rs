@@ -6,7 +6,7 @@ use hexx::Hex;
 use std::collections::HashSet;
 
 use crate::game::action_points::ActionPoints;
-use crate::game::combat::CombatEvent;
+use crate::game::combat::{CombatConfig, CombatEvent};
 use crate::game::common_components::UnitFilter;
 use crate::game::hex::{HexComponent, HexMarker};
 use crate::game::hovered_hex::HoveredHex;
@@ -27,6 +27,7 @@ pub fn handle_selected_unit_input(
             &Team,
             &mut ActionPoints,
             &UnitStatus,
+            &CombatConfig,
         ),
         UnitFilter,
     >,
@@ -42,9 +43,9 @@ pub fn handle_selected_unit_input(
         return;
     };
 
-    if let Some((hovered_entity, hovered_entity_hex, hovered_entity_team, _, _)) = units
+    if let Some((hovered_entity, hovered_entity_hex, hovered_entity_team, _, _, _)) = units
         .iter()
-        .find(|(_, hex, _, _, _)| hex.0 == hex_cursor_position)
+        .find(|(_, hex, _, _, _, _)| hex.0 == hex_cursor_position)
     {
         if &active_team.0 == hovered_entity_team {
             selected_unit_resource.set_selected_unit(Some(hovered_entity));
@@ -55,17 +56,18 @@ pub fn handle_selected_unit_input(
             return;
         };
 
-        let (_, selected_unit_hex, _, action_points, _) = units.get(selected_unit).unwrap();
+        let (_, selected_unit_hex, _, action_points, _, combat_config) =
+            units.get(selected_unit).unwrap();
         let distance = hovered_entity_hex
             .0
             .unsigned_distance_to(selected_unit_hex.0);
-        if distance == 1 && action_points.can_still_attack_this_turn() {
+        if distance <= combat_config.range && action_points.can_still_attack_this_turn() {
             combat_event.send(CombatEvent {
                 attacker: selected_unit,
                 defender: hovered_entity,
             });
 
-            let (_, _, _, mut action_points, _) = units.get_mut(selected_unit).unwrap();
+            let (_, _, _, mut action_points, _, _) = units.get_mut(selected_unit).unwrap();
             action_points.left -= action_points.attack_action_point_cost();
             action_points.attacks_this_round += 1;
         }
@@ -101,6 +103,7 @@ fn move_selected_unit_to_clicked_hex(
             &Team,
             &mut ActionPoints,
             &UnitStatus,
+            &CombatConfig,
         ),
         UnitFilter,
     >,
@@ -115,7 +118,7 @@ fn move_selected_unit_to_clicked_hex(
         return;
     }
 
-    let (_, mut hex_component, _, mut action_points, unit_status) =
+    let (_, mut hex_component, _, mut action_points, unit_status, _) =
         units.get_mut(selected_unit).unwrap();
 
     let Some(mut hexes_way) = a_star(hex_component.0, *hex_cursor_position, |hex| {

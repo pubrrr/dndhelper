@@ -3,7 +3,7 @@ use bevy_egui::egui::{Ui, Window};
 use bevy_egui::EguiContexts;
 
 use crate::game::action_points::ActionPoints;
-use crate::game::combat::HealthPoints;
+use crate::game::combat::{CombatConfig, HealthPoints};
 use crate::game::common_components::UnitMarker;
 use crate::game::hex::HexComponent;
 use crate::game::hovered_hex::{HoveredHex, HoveredUnitResource};
@@ -25,6 +25,7 @@ pub fn ui_system(
         &HealthPoints,
         &Team,
         &UnitStatus,
+        &CombatConfig,
     )>,
     hovered_hex: Res<HoveredHex>,
     terrain_hexes: Query<(&Terrain, &HexComponent)>,
@@ -57,6 +58,7 @@ fn display_selected_unit(
         &HealthPoints,
         &Team,
         &UnitStatus,
+        &CombatConfig,
     )>,
     ui: &mut Ui,
 ) {
@@ -71,7 +73,7 @@ fn display_selected_unit(
         return;
     };
 
-    let (unit_marker, action_points, health_points, team, unit_status) =
+    let (unit_marker, action_points, health_points, team, unit_status, combat_config) =
         units.get(selected_unit).unwrap();
     ui.label(format!("Unit: {}", unit_marker.0));
     ui.label(format!("Owner: {team}"));
@@ -91,6 +93,7 @@ fn display_selected_unit(
         health_points.get_max()
     ));
     ui.label(format!("Status: {unit_status:#?}"));
+    ui.label(format!("Combat Stats: {combat_config:#?}"));
 }
 
 fn display_terrain(

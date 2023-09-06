@@ -9,6 +9,7 @@ use hexx::algorithms::field_of_movement;
 use hexx::Hex;
 
 use crate::game::action_points::ActionPoints;
+use crate::game::combat::CombatConfig;
 use crate::game::common_components::{UnitFilter, UnitMarker};
 use crate::game::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
 use crate::game::team_setup::Team;
@@ -112,7 +113,16 @@ pub fn update_selected_unit_hex(
 }
 
 pub fn update_reachable_hexes_cache(
-    units: Query<(&ActionPoints, &HexComponent, &Team, &ActionPoints), UnitFilter>,
+    units: Query<
+        (
+            &ActionPoints,
+            &HexComponent,
+            &Team,
+            &ActionPoints,
+            &CombatConfig,
+        ),
+        UnitFilter,
+    >,
     hexes: Query<(&HexComponent, &Terrain), With<HexMarker>>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
 ) {
@@ -126,8 +136,13 @@ pub fn update_reachable_hexes_cache(
         return;
     };
 
-    let (action_points, selected_unit_hex, selected_unit_team, selected_unit_action_points) =
-        units.get(selected_unit).unwrap();
+    let (
+        action_points,
+        selected_unit_hex,
+        selected_unit_team,
+        selected_unit_action_points,
+        selected_unit_combat_config,
+    ) = units.get(selected_unit).unwrap();
 
     selected_unit_resource.cost_map = hexes
         .iter()
@@ -136,7 +151,7 @@ pub fn update_reachable_hexes_cache(
 
     selected_unit_resource
         .cost_map
-        .extend(units.iter().map(|(_, hex_component, _, _)| {
+        .extend(units.iter().map(|(_, hex_component, _, _, _)| {
             let cost = match selected_unit_hex.0.unsigned_distance_to(hex_component.0) {
                 0 => MovementCost::Passable(0),
                 _ => MovementCost::Impassable,
@@ -155,11 +170,12 @@ pub fn update_reachable_hexes_cache(
     if selected_unit_action_points.can_still_attack_this_turn() {
         let attackable_units = units
             .iter()
-            .filter(|(_, _, team, _)| team != &selected_unit_team)
-            .filter(|(_, hex_component, _, _)| {
-                selected_unit_hex.0.unsigned_distance_to(hex_component.0) == 1
+            .filter(|(_, _, team, _, _)| team != &selected_unit_team)
+            .filter(|(_, hex_component, _, _, _)| {
+                selected_unit_hex.0.unsigned_distance_to(hex_component.0)
+                    <= selected_unit_combat_config.range
             })
-            .map(|(_, hex_component, _, _)| hex_component.0);
+            .map(|(_, hex_component, _, _, _)| hex_component.0);
 
         reachable_hexes.extend(attackable_units);
     }

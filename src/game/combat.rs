@@ -45,6 +45,7 @@ pub struct CombatConfig {
     pub attack: usize,
     /// Chance to defend in a D20 dice roll
     pub defense: usize,
+    pub range: u32,
 }
 
 #[derive(Event, Debug)]

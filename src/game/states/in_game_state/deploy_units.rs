@@ -215,6 +215,7 @@ fn handle_deploy_unit_event(
             .insert(CombatConfig {
                 attack: unit_assets.stats.attack,
                 defense: unit_assets.stats.defense,
+                range: unit_assets.stats.range,
             })
             .insert(HexComponent(event.hex))
             .id();
