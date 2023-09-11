@@ -1,19 +1,19 @@
-use crate::game::common_components::UnitMarker;
-use crate::game::hex::{HexComponent, HexResources};
 use bevy::prelude::{
-    debug, default, info, trace, warn, Color, Commands, Component, DespawnRecursiveExt,
-    DetectChanges, Entity, Query, Res, Transform, With,
+    default, trace, Color, Commands, Component, DespawnRecursiveExt, DetectChanges, Entity, Query,
+    Res, ResMut, Resource, Transform, With,
 };
 use bevy_prototype_lyon::prelude::{Fill, PathBuilder, ShapeBundle, Stroke};
 use hexx::algorithms::a_star;
 use hexx::Hex;
 
+use crate::game::common_components::UnitMarker;
+use crate::game::hex::{HexComponent, HexResources};
 use crate::game::hovered_hex::HoveredHex;
 use crate::game::selected_unit::SelectedUnitResource;
 use crate::game::z_ordering::ZOrdering;
 
-#[derive(Debug)]
-pub struct CurrentPath(Option<Vec<Hex>>);
+#[derive(Resource, Default, Debug)]
+pub struct CurrentPath(pub Option<Vec<Hex>>);
 
 #[derive(Component, Debug)]
 pub struct PathMarker;
@@ -40,18 +40,22 @@ pub fn compute_current_path(
     hovered_hex: Res<HoveredHex>,
     hex_resources: Res<HexResources>,
     units: Query<&HexComponent, With<UnitMarker>>,
+    mut current_path: ResMut<CurrentPath>,
 ) {
     if !selected_unit_resource.is_changed() && !hovered_hex.is_changed() {
         return;
     };
 
     let Some(selected_unit) = selected_unit_resource.selected_unit() else {
+        current_path.0 = None;
         return;
     };
     let Some(hovered_hex) = hovered_hex.0 else {
+        current_path.0 = None;
         return;
     };
     let Ok(unit_hex) = units.get(selected_unit) else {
+        current_path.0 = None;
         return;
     };
 
@@ -61,12 +65,13 @@ pub fn compute_current_path(
             .get(&hex)
             .and_then(|movement_cost| movement_cost.get_modified_algorithm_cost())
     }) else {
+        current_path.0 = None;
         return;
     };
 
     let world_pos_way = hexes_way
-        .into_iter()
-        .map(|hex| hex_resources.hex_layout.hex_to_world_pos(hex));
+        .iter()
+        .map(|hex| hex_resources.hex_layout.hex_to_world_pos(*hex));
 
     let path_segments = world_pos_way.clone().zip(world_pos_way.skip(1));
 
@@ -88,4 +93,6 @@ pub fn compute_current_path(
             Fill::color(Color::RED),
         ));
     }
+
+    current_path.0 = Some(hexes_way);
 }

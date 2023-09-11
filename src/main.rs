@@ -22,11 +22,13 @@ use dndhelper::game::hovered_hex::HoveredUnitResource;
 use dndhelper::game::hovered_hex::{update_hovered_hex, HoveredHex};
 use dndhelper::game::input_system::{handle_selected_unit_input, update_hovered_unit};
 use dndhelper::game::menu::menu_ui;
+use dndhelper::game::move_unit::handle_move_event;
+use dndhelper::game::move_unit::MoveUnitEvent;
 use dndhelper::game::nation_asset_resource::insert_nation_assets_resource;
 use dndhelper::game::nation_asset_resource::NationAssetsResourceHelperAssets;
 use dndhelper::game::nation_assets::{LoadingState, NationAssetCollection, UnitStats};
-use dndhelper::game::path::compute_current_path;
 use dndhelper::game::path::despawn_old_path;
+use dndhelper::game::path::{compute_current_path, CurrentPath};
 use dndhelper::game::post_update_systems::update_transform_from_hex;
 use dndhelper::game::selected_unit::{
     check_whether_selected_unit_needs_recomputation, reset_selected_unit, update_hex_overlay,
@@ -150,6 +152,7 @@ fn main() {
                 update_health_bar_size,
                 handle_log_events,
                 disengage_apart_units,
+                handle_move_event,
             )
                 .run_if(in_state(InGameState::Playing)),
         )
@@ -159,6 +162,7 @@ fn main() {
         )
         .add_event::<LogEvent>()
         .add_event::<PickNationEvent>()
+        .add_event::<MoveUnitEvent>()
         .init_resource::<ActiveTeam>()
         .init_resource::<HoveredHex>()
         .init_resource::<SelectedUnitResource>()
@@ -166,6 +170,7 @@ fn main() {
         .init_resource::<HealthBarResources>()
         .init_resource::<LogRecord>()
         .init_resource::<PickedNationsResource>()
+        .init_resource::<CurrentPath>()
         .run();
 }
 

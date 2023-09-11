@@ -8,6 +8,7 @@ pub mod hex;
 pub mod hovered_hex;
 pub mod input_system;
 pub mod menu;
+pub mod move_unit;
 pub mod nation_asset_resource;
 pub mod nation_assets;
 pub mod path;
