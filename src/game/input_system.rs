@@ -10,7 +10,6 @@ use crate::game::move_unit::MoveUnitEvent;
 use crate::game::selected_unit::SelectedUnitResource;
 use crate::game::states::round_state::ActiveTeam;
 use crate::game::team_setup::Team;
-use crate::game::unit_status::UnitStatus;
 
 pub fn handle_selected_unit_input(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
@@ -18,10 +17,9 @@ pub fn handle_selected_unit_input(
     #[allow(clippy::type_complexity)] mut units: Query<
         (
             Entity,
-            &mut HexComponent,
+            &HexComponent,
             &Team,
             &mut ActionPoints,
-            &UnitStatus,
             &CombatConfig,
         ),
         UnitFilter,
@@ -38,9 +36,9 @@ pub fn handle_selected_unit_input(
         return;
     };
 
-    if let Some((hovered_entity, hovered_entity_hex, hovered_entity_team, _, _, _)) = units
+    if let Some((hovered_entity, hovered_entity_hex, hovered_entity_team, _, _)) = units
         .iter()
-        .find(|(_, hex, _, _, _, _)| hex.0 == hex_cursor_position)
+        .find(|(_, hex, _, _, _)| hex.0 == hex_cursor_position)
     {
         if &active_team.0 == hovered_entity_team {
             selected_unit_resource.set_selected_unit(Some(hovered_entity));
@@ -51,8 +49,7 @@ pub fn handle_selected_unit_input(
             return;
         };
 
-        let Ok((_, selected_unit_hex, _, action_points, _, combat_config)) =
-            units.get(selected_unit)
+        let Ok((_, selected_unit_hex, _, action_points, combat_config)) = units.get(selected_unit)
         else {
             return;
         };
@@ -66,7 +63,7 @@ pub fn handle_selected_unit_input(
                 defender: hovered_entity,
             });
 
-            let (_, _, _, mut action_points, _, _) = units.get_mut(selected_unit).unwrap();
+            let (_, _, _, mut action_points, _) = units.get_mut(selected_unit).unwrap();
             action_points.left -= action_points.attack_action_point_cost();
             action_points.attacks_this_round += 1;
         }

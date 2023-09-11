@@ -7,6 +7,7 @@ use bevy::prelude::{
 use crate::game::common_components::UnitMarker;
 use crate::game::game_log::LogEvent;
 use crate::game::states::in_game_state::InGameState;
+use crate::game::unit_status::UnitStatus;
 use crate::game::util::dice::Dice;
 
 pub struct CombatPlugin;
@@ -67,7 +68,9 @@ fn handle_combat_event(
     log_event: &mut EventWriter<LogEvent>,
     combat_event: &CombatEvent,
 ) {
-    let (attacker_config, _, attacker_unit) = units.get_mut(combat_event.attacker).unwrap();
+    let Ok((attacker_config, _, attacker_unit)) = units.get_mut(combat_event.attacker) else {
+        return;
+    };
 
     let attack_points = attacker_config.attack;
     let attacker_name = attacker_unit.0.clone();
@@ -107,12 +110,23 @@ fn handle_combat_event(
 
 fn despawn_dead_units(
     mut commands: Commands,
-    units: Query<(Entity, &HealthPoints), Changed<HealthPoints>>,
+    mut units: Query<(Entity, &HealthPoints, &mut UnitStatus), Changed<HealthPoints>>,
 ) {
-    for (entity, health_points) in units.iter() {
-        if health_points.left == 0 {
+    let despawned_entities: Vec<_> = units
+        .iter()
+        .filter(|(_, health_points, _)| health_points.left == 0)
+        .map(|(entity, _, _)| {
             info!("Despawning {entity:?}, because health points are 0");
             commands.entity(entity).despawn_recursive();
+            entity
+        })
+        .collect();
+
+    for (_, _, mut unit_status) in &mut units {
+        for despawned_entity in &despawned_entities {
+            if unit_status.is_engaged_with(&despawned_entity) {
+                unit_status.disengage_with(&despawned_entity);
+            }
         }
     }
 }
