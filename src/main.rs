@@ -7,6 +7,7 @@ use bevy::DefaultPlugins;
 use bevy_asset_loader::prelude::LoadingStateAppExt;
 use bevy_common_assets::ron::RonAssetPlugin;
 use bevy_egui::EguiPlugin;
+use bevy_prototype_lyon::prelude::ShapePlugin;
 
 use dndhelper::common::DynamicNationAssetsDefinition;
 use dndhelper::game::action_points::reset_action_points;
@@ -24,6 +25,8 @@ use dndhelper::game::menu::menu_ui;
 use dndhelper::game::nation_asset_resource::insert_nation_assets_resource;
 use dndhelper::game::nation_asset_resource::NationAssetsResourceHelperAssets;
 use dndhelper::game::nation_assets::{LoadingState, NationAssetCollection, UnitStats};
+use dndhelper::game::path::compute_current_path;
+use dndhelper::game::path::despawn_old_path;
 use dndhelper::game::post_update_systems::update_transform_from_hex;
 use dndhelper::game::selected_unit::{
     check_whether_selected_unit_needs_recomputation, reset_selected_unit, update_hex_overlay,
@@ -68,6 +71,7 @@ fn main() {
             EguiPlugin,
             DeployUnitsPlugin,
             CombatPlugin,
+            ShapePlugin,
         ))
         .add_loading_state(
             bevy_asset_loader::loading_state::LoadingState::new(LoadingState::LoadingDynamicAssets)
@@ -129,6 +133,8 @@ fn main() {
                 display_log_events,
                 add_health_bars,
                 reset_selected_unit,
+                compute_current_path,
+                despawn_old_path,
                 handle_selected_unit_input.run_if(in_state(RoundState::Moving)),
                 update_hovered_unit.run_if(in_state(RoundState::Moving)),
             )

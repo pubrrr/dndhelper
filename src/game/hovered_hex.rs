@@ -27,9 +27,13 @@ pub fn update_hovered_hex(
         .map(|position| hex_resources.hex_layout.world_pos_to_hex(position))
     {
         if hexes.iter().any(|hex| hex.0 == hex_cursor_position) {
-            clicked_hex.0 = Some(hex_cursor_position);
+            if clicked_hex.0 != Some(hex_cursor_position) {
+                clicked_hex.0 = Some(hex_cursor_position);
+            }
             return;
         }
     }
-    clicked_hex.0 = None;
+    if clicked_hex.0 != None {
+        clicked_hex.0 = None;
+    }
 }

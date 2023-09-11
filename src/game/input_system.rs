@@ -134,7 +134,6 @@ fn move_selected_unit_to_clicked_hex(
         warn!("A Star algorithm returned None");
         return;
     };
-
     hexes_way.remove(0);
 
     let cost: usize = hexes_way
