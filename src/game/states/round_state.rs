@@ -1,7 +1,7 @@
 use bevy::prelude::{NextState, ResMut, Resource, State, States};
 
-use crate::game::selected_unit::SelectedUnitResource;
-use crate::game::team_setup::Team;
+use crate::game::ingame::selected_unit::SelectedUnitResource;
+use crate::game::ingame::team_setup::Team;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, States, Default)]
 pub enum RoundState {
@@ -20,7 +20,7 @@ impl Default for ActiveTeam {
     }
 }
 
-pub fn start_round_system(
+pub(super) fn start_round_system(
     round_state: ResMut<State<RoundState>>,
     mut next_round_state: ResMut<NextState<RoundState>>,
 ) {

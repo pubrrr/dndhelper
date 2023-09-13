@@ -12,13 +12,16 @@ pub struct LogRecord {
     storage: Vec<LogEvent>,
 }
 
-pub fn handle_log_events(mut log_events: EventReader<LogEvent>, mut log_record: ResMut<LogRecord>) {
+pub(super) fn handle_log_events(
+    mut log_events: EventReader<LogEvent>,
+    mut log_record: ResMut<LogRecord>,
+) {
     for log_event in log_events.iter() {
         log_record.storage.push(log_event.clone());
     }
 }
 
-pub fn display_log_events(mut contexts: EguiContexts, log_record: Res<LogRecord>) {
+pub(super) fn display_log_events(mut contexts: EguiContexts, log_record: Res<LogRecord>) {
     Window::new("Logs")
         .default_size((250., 150.))
         .show(contexts.ctx_mut(), |ui| {

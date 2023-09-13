@@ -1,26 +1,12 @@
-use bevy::app::App;
 use bevy::prelude::{
-    debug, in_state, info, Changed, Commands, Component, DespawnRecursiveExt, Entity, Event,
-    EventReader, EventWriter, IntoSystemConfigs, Plugin, PostUpdate, Query,
+    debug, info, Changed, Commands, Component, DespawnRecursiveExt, Entity, Event, EventReader,
+    EventWriter, Query,
 };
 
-use crate::game::common_components::UnitMarker;
-use crate::game::game_log::LogEvent;
-use crate::game::states::in_game_state::InGameState;
-use crate::game::unit_status::UnitStatus;
+use crate::game::ingame::common_components::UnitMarker;
+use crate::game::ingame::game_log::LogEvent;
+use crate::game::ingame::unit_status::UnitStatus;
 use crate::game::util::dice::Dice;
-
-pub struct CombatPlugin;
-
-impl Plugin for CombatPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            PostUpdate,
-            (handle_combat, despawn_dead_units).run_if(in_state(InGameState::Playing)),
-        )
-        .add_event::<CombatEvent>();
-    }
-}
 
 #[derive(Component, Debug)]
 pub struct HealthPoints {
@@ -53,7 +39,7 @@ pub struct CombatEvent {
     pub defender: Entity,
 }
 
-fn handle_combat(
+pub(super) fn handle_combat(
     mut units: Query<(&CombatConfig, &mut HealthPoints, &UnitMarker)>,
     mut combat_events: EventReader<CombatEvent>,
     mut log_event: EventWriter<LogEvent>,
@@ -63,7 +49,7 @@ fn handle_combat(
     }
 }
 
-fn handle_combat_event(
+pub(super) fn handle_combat_event(
     units: &mut Query<(&CombatConfig, &mut HealthPoints, &UnitMarker)>,
     log_event: &mut EventWriter<LogEvent>,
     combat_event: &CombatEvent,
@@ -108,7 +94,7 @@ fn handle_combat_event(
     }
 }
 
-fn despawn_dead_units(
+pub(super) fn despawn_dead_units(
     mut commands: Commands,
     mut units: Query<(Entity, &HealthPoints, &mut UnitStatus), Changed<HealthPoints>>,
 ) {

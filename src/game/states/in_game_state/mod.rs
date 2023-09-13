@@ -6,9 +6,10 @@ use bevy::prelude::{
 use bevy::utils::HashMap;
 
 use crate::game::asset_loading::nation_asset_resource::NationKey;
-use crate::game::hex::setup_hex_grid;
-use crate::game::hovered_hex::update_hovered_hex;
-use crate::game::post_update_systems::update_transform_from_hex;
+use crate::game::ingame::hex::setup_hex_grid;
+use crate::game::ingame::hovered_hex::update_hovered_hex;
+use crate::game::ingame::post_update_systems::update_transform_from_hex;
+use crate::game::ingame::team_setup::Team;
 use crate::game::states::game_state::GameState;
 use crate::game::states::in_game_state::deploy_units::DeployUnitsPlugin;
 use crate::game::states::in_game_state::events::skip_events;
@@ -17,7 +18,6 @@ use crate::game::states::in_game_state::pick_nation::{
     handle_pick_nation_event, pick_nation_menu, PickNationEvent,
 };
 use crate::game::states::round_state::start_round_system;
-use crate::game::team_setup::Team;
 
 mod deploy_units;
 mod events;

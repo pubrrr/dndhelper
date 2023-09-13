@@ -1,17 +1,16 @@
 use bevy::prelude::{debug, warn, Entity, EventWriter, Input, MouseButton, Query, Res, ResMut};
 
-use crate::game::action_points::ActionPoints;
-use crate::game::combat::{CombatConfig, CombatEvent};
-use crate::game::common_components::UnitFilter;
-use crate::game::hex::HexComponent;
-use crate::game::hovered_hex::HoveredHex;
-use crate::game::hovered_hex::HoveredUnitResource;
-use crate::game::move_unit::MoveUnitEvent;
-use crate::game::selected_unit::SelectedUnitResource;
+use crate::game::ingame::action_points::ActionPoints;
+use crate::game::ingame::combat::{CombatConfig, CombatEvent};
+use crate::game::ingame::common_components::UnitFilter;
+use crate::game::ingame::hex::HexComponent;
+use crate::game::ingame::hovered_hex::{HoveredHex, HoveredUnitResource};
+use crate::game::ingame::move_unit::MoveUnitEvent;
+use crate::game::ingame::selected_unit::SelectedUnitResource;
+use crate::game::ingame::team_setup::Team;
 use crate::game::states::round_state::ActiveTeam;
-use crate::game::team_setup::Team;
 
-pub fn handle_selected_unit_input(
+pub(super) fn handle_selected_unit_input(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     buttons: Res<Input<MouseButton>>,
     #[allow(clippy::type_complexity)] mut units: Query<
@@ -87,7 +86,7 @@ pub fn handle_selected_unit_input(
     };
 }
 
-pub fn update_hovered_unit(
+pub(super) fn update_hovered_unit(
     mut hovered_unit_resource: ResMut<HoveredUnitResource>,
     units: Query<(Entity, &HexComponent), UnitFilter>,
     hovered_hex: Res<HoveredHex>,

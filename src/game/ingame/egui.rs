@@ -2,18 +2,18 @@ use bevy::prelude::{warn, NextState, Query, Res, ResMut};
 use bevy_egui::egui::{Ui, Window};
 use bevy_egui::EguiContexts;
 
-use crate::game::action_points::ActionPoints;
-use crate::game::combat::{CombatConfig, HealthPoints};
-use crate::game::common_components::UnitMarker;
-use crate::game::hex::HexComponent;
-use crate::game::hovered_hex::{HoveredHex, HoveredUnitResource};
-use crate::game::selected_unit::SelectedUnitResource;
+use crate::game::ingame::action_points::ActionPoints;
+use crate::game::ingame::combat::{CombatConfig, HealthPoints};
+use crate::game::ingame::common_components::UnitMarker;
+use crate::game::ingame::hex::HexComponent;
+use crate::game::ingame::hovered_hex::{HoveredHex, HoveredUnitResource};
+use crate::game::ingame::selected_unit::SelectedUnitResource;
+use crate::game::ingame::team_setup::Team;
+use crate::game::ingame::terrain::Terrain;
+use crate::game::ingame::unit_status::UnitStatus;
 use crate::game::states::round_state::{ActiveTeam, RoundState};
-use crate::game::team_setup::Team;
-use crate::game::terrain::Terrain;
-use crate::game::unit_status::UnitStatus;
 
-pub fn ui_system(
+pub(super) fn ui_system(
     mut contexts: EguiContexts,
     active_team: Res<ActiveTeam>,
     mut round_state: ResMut<NextState<RoundState>>,

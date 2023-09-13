@@ -6,11 +6,11 @@ use bevy_prototype_lyon::prelude::{Fill, PathBuilder, ShapeBundle, Stroke};
 use hexx::algorithms::a_star;
 use hexx::Hex;
 
-use crate::game::common_components::UnitMarker;
-use crate::game::hex::{HexComponent, HexResources};
-use crate::game::hovered_hex::HoveredHex;
-use crate::game::selected_unit::SelectedUnitResource;
-use crate::game::z_ordering::ZOrdering;
+use crate::game::ingame::common_components::UnitMarker;
+use crate::game::ingame::hex::{HexComponent, HexResources};
+use crate::game::ingame::hovered_hex::HoveredHex;
+use crate::game::ingame::selected_unit::SelectedUnitResource;
+use crate::game::ingame::z_ordering::ZOrdering;
 
 #[derive(Resource, Default, Debug)]
 pub struct CurrentPath(pub Option<Vec<Hex>>);
@@ -18,7 +18,7 @@ pub struct CurrentPath(pub Option<Vec<Hex>>);
 #[derive(Component, Debug)]
 pub struct PathMarker;
 
-pub fn despawn_old_path(
+pub(super) fn despawn_old_path(
     mut commands: Commands,
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_hex: Res<HoveredHex>,
@@ -34,7 +34,7 @@ pub fn despawn_old_path(
     }
 }
 
-pub fn compute_current_path(
+pub(super) fn compute_current_path(
     mut commands: Commands,
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_hex: Res<HoveredHex>,

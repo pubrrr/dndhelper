@@ -8,12 +8,12 @@ use bevy::utils::HashMap;
 use hexx::algorithms::field_of_movement;
 use hexx::Hex;
 
-use crate::game::action_points::ActionPoints;
-use crate::game::combat::CombatConfig;
-use crate::game::common_components::{UnitFilter, UnitMarker};
-use crate::game::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
-use crate::game::team_setup::Team;
-use crate::game::terrain::{MovementCost, Terrain};
+use crate::game::ingame::action_points::ActionPoints;
+use crate::game::ingame::combat::CombatConfig;
+use crate::game::ingame::common_components::{UnitFilter, UnitMarker};
+use crate::game::ingame::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
+use crate::game::ingame::team_setup::Team;
+use crate::game::ingame::terrain::{MovementCost, Terrain};
 
 #[derive(Resource, Default)]
 pub struct SelectedUnitResource {
@@ -53,7 +53,7 @@ pub struct SelectedUnitHexMarker {
     pub selected_hex_color: Handle<ColorMaterial>,
 }
 
-pub fn check_whether_selected_unit_needs_recomputation(
+pub(super) fn check_whether_selected_unit_needs_recomputation(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     units_with_changed_action_points: Query<Entity, (With<UnitMarker>, Changed<ActionPoints>)>,
 ) {
@@ -67,7 +67,7 @@ pub fn check_whether_selected_unit_needs_recomputation(
     }
 }
 
-pub fn reset_selected_unit(
+pub(super) fn reset_selected_unit(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     keys: Res<Input<KeyCode>>,
 ) {
@@ -76,7 +76,7 @@ pub fn reset_selected_unit(
     }
 }
 
-pub fn update_selected_unit_hex(
+pub(super) fn update_selected_unit_hex(
     mut commands: Commands,
     selected_unit_resource: Res<SelectedUnitResource>,
     units: Query<&HexComponent, UnitFilter>,
@@ -114,7 +114,7 @@ pub fn update_selected_unit_hex(
     }
 }
 
-pub fn update_reachable_hexes_cache(
+pub(super) fn update_reachable_hexes_cache(
     units: Query<
         (
             &ActionPoints,
@@ -189,7 +189,7 @@ pub fn update_reachable_hexes_cache(
     selected_unit_resource.recompute_cache = false;
 }
 
-pub fn update_hex_overlay(
+pub(super) fn update_hex_overlay(
     mut commands: Commands,
     hex_overlays: Query<
         (Entity, &HexComponent, Option<&Handle<ColorMaterial>>),

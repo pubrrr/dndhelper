@@ -1,8 +1,9 @@
+use bevy::prelude::{info, Commands, NextState, Res, ResMut, State};
+
+use crate::game::ingame::team_setup::Team;
 use crate::game::states::in_game_state::pick_nation::PlayerPickedNationResource;
 use crate::game::states::in_game_state::{InGameState, PickedNation, PickedNationsResource};
 use crate::game::states::round_state::ActiveTeam;
-use crate::game::team_setup::Team;
-use bevy::prelude::{info, Commands, NextState, Res, ResMut, State};
 
 pub(super) fn skip_pick_commander(
     mut commands: Commands,

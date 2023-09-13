@@ -7,10 +7,10 @@ use bevy::prelude::{
 };
 use bevy::sprite::Mesh2dHandle;
 
-use crate::game::combat::HealthPoints;
-use crate::game::hex::HEX_RADIUS;
-use crate::game::selected_unit::SelectedUnitResource;
-use crate::game::z_ordering::ZOrdering;
+use crate::game::ingame::combat::HealthPoints;
+use crate::game::ingame::hex::HEX_RADIUS;
+use crate::game::ingame::selected_unit::SelectedUnitResource;
+use crate::game::ingame::z_ordering::ZOrdering;
 
 const MAX_Y_SCALE: f32 = 0.9;
 
@@ -48,7 +48,7 @@ impl FromWorld for HealthBarResources {
     }
 }
 
-pub fn add_health_bars(
+pub(super) fn add_health_bars(
     mut commands: Commands,
     entities_with_health: Query<Entity, Added<HealthPoints>>,
     health_bar_resources: Res<HealthBarResources>,
@@ -98,7 +98,7 @@ pub fn add_health_bars(
     }
 }
 
-pub fn update_health_bar_positions(
+pub(super) fn update_health_bar_positions(
     mut commands: Commands,
     entities_with_health: Query<&Transform, (With<HealthPoints>, Without<HealthBarForEntity>)>,
     mut health_bar_entities: Query<(Entity, &HealthBarForEntity, &mut Transform)>,
@@ -131,7 +131,7 @@ pub fn update_health_bar_positions(
     }
 }
 
-pub fn update_health_bar_size(
+pub(super) fn update_health_bar_size(
     entities_with_health: Query<
         &HealthPoints,
         (Without<HealthBarForEntity>, Changed<HealthPoints>),

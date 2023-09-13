@@ -1,8 +1,9 @@
-use crate::game::hex::HexComponent;
-use crate::game::selected_unit::SelectedUnitResource;
-use crate::game::team_setup::Team;
 use bevy::prelude::{debug, Component, DetectChanges, Entity, Query, Ref, ResMut};
 use bevy::utils::HashSet;
+
+use crate::game::ingame::hex::HexComponent;
+use crate::game::ingame::selected_unit::SelectedUnitResource;
+use crate::game::ingame::team_setup::Team;
 
 #[derive(Component, Debug)]
 pub struct UnitStatus {
@@ -33,7 +34,7 @@ impl UnitStatus {
     }
 }
 
-pub fn disengage_apart_units(
+pub(super) fn disengage_apart_units(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     mut units: Query<(Entity, &mut UnitStatus, Ref<HexComponent>, &Team)>,
 ) {

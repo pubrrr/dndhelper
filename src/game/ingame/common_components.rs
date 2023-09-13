@@ -1,6 +1,6 @@
 use bevy::prelude::{Component, With, Without};
 
-use crate::game::hex::HexMarker;
+use crate::game::ingame::hex::HexMarker;
 
 pub type UnitFilter = (With<UnitMarker>, Without<HexMarker>);
 pub type HexFilter = (With<HexMarker>, Without<UnitMarker>);

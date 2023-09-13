@@ -1,4 +1,3 @@
-use crate::game::selected_unit::SelectedUnitHexMarker;
 use bevy::prelude::{
     default, Assets, Color, ColorMaterial, ColorMesh2dBundle, Commands, Component, Handle, Mesh,
     ResMut, Resource, Transform, Vec2, Vec3,
@@ -7,9 +6,9 @@ use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::utils::HashMap;
 use hexx::{Hex, HexLayout, PlaneMeshBuilder};
 
-use crate::game::terrain::MovementCost;
-use crate::game::terrain::Terrain;
-use crate::game::z_ordering::ZOrdering;
+use crate::game::ingame::selected_unit::SelectedUnitHexMarker;
+use crate::game::ingame::terrain::{MovementCost, Terrain};
+use crate::game::ingame::z_ordering::ZOrdering;
 
 pub const HEX_RADIUS: f32 = 50.;
 

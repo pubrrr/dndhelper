@@ -1,18 +1,18 @@
 use bevy::prelude::{info, warn, Event, EventReader, EventWriter, Query, Res, With};
 
-use crate::game::action_points::ActionPoints;
-use crate::game::combat::CombatEvent;
-use crate::game::common_components::UnitFilter;
-use crate::game::hex::{HexComponent, HexMarker};
-use crate::game::path::CurrentPath;
-use crate::game::selected_unit::SelectedUnitResource;
-use crate::game::terrain::{MovementCost, Terrain};
-use crate::game::unit_status::UnitStatus;
+use crate::game::ingame::action_points::ActionPoints;
+use crate::game::ingame::combat::CombatEvent;
+use crate::game::ingame::common_components::UnitFilter;
+use crate::game::ingame::hex::{HexComponent, HexMarker};
+use crate::game::ingame::path::CurrentPath;
+use crate::game::ingame::selected_unit::SelectedUnitResource;
+use crate::game::ingame::terrain::{MovementCost, Terrain};
+use crate::game::ingame::unit_status::UnitStatus;
 
 #[derive(Event, Debug)]
 pub struct MoveUnitEvent;
 
-pub fn handle_move_event(
+pub(super) fn handle_move_event(
     mut move_events: EventReader<MoveUnitEvent>,
     selected_unit_resource: Res<SelectedUnitResource>,
     current_path: Res<CurrentPath>,

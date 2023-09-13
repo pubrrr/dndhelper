@@ -5,16 +5,16 @@ use bevy::prelude::{
 };
 use hexx::Hex;
 
-use crate::game::action_points::ActionPoints;
 use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
-use crate::game::combat::{CombatConfig, HealthPoints};
-use crate::game::common_components::UnitMarker;
-use crate::game::hex::{setup_hex_grid, HexComponent};
+use crate::game::ingame::action_points::ActionPoints;
+use crate::game::ingame::combat::{CombatConfig, HealthPoints};
+use crate::game::ingame::common_components::UnitMarker;
+use crate::game::ingame::hex::{setup_hex_grid, HexComponent};
+use crate::game::ingame::team_setup::Team;
+use crate::game::ingame::unit_status::UnitStatus;
+use crate::game::ingame::z_ordering::ZOrdering;
 use crate::game::states::in_game_state::{InGameState, PickedNation, PickedNationsResource};
 use crate::game::states::round_state::RoundState;
-use crate::game::team_setup::Team;
-use crate::game::unit_status::UnitStatus;
-use crate::game::z_ordering::ZOrdering;
 
 pub struct QuickstartPlugin;
 

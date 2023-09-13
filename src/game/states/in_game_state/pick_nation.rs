@@ -5,9 +5,9 @@ use bevy_egui::egui::Window;
 use bevy_egui::EguiContexts;
 
 use crate::game::asset_loading::nation_asset_resource::{NationAssetsResource, NationKey};
+use crate::game::ingame::team_setup::Team;
 use crate::game::states::in_game_state::InGameState;
 use crate::game::states::round_state::ActiveTeam;
-use crate::game::team_setup::Team;
 
 #[derive(Event, Debug)]
 pub struct PickNationEvent {

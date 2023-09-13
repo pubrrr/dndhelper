@@ -1,6 +1,6 @@
 use bevy::prelude::{Query, Res, Transform, Without};
 
-use crate::game::hex::{HexComponent, HexMarker, HexResources};
+use crate::game::ingame::hex::{HexComponent, HexMarker, HexResources};
 
 pub fn update_transform_from_hex(
     mut hex_entities: Query<(&HexComponent, &mut Transform), Without<HexMarker>>,

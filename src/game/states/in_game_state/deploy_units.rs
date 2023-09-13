@@ -8,19 +8,19 @@ use bevy_egui::egui::Window;
 use bevy_egui::EguiContexts;
 use hexx::Hex;
 
-use crate::game::action_points::ActionPoints;
 use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
 use crate::game::asset_loading::nation_assets::UnitKey;
-use crate::game::combat::{CombatConfig, HealthPoints};
-use crate::game::common_components::UnitMarker;
-use crate::game::hex::{HexComponent, HexMarker};
-use crate::game::hovered_hex::HoveredHex;
+use crate::game::ingame::action_points::ActionPoints;
+use crate::game::ingame::combat::{CombatConfig, HealthPoints};
+use crate::game::ingame::common_components::UnitMarker;
+use crate::game::ingame::hex::{HexComponent, HexMarker};
+use crate::game::ingame::hovered_hex::HoveredHex;
+use crate::game::ingame::team_setup::Team;
+use crate::game::ingame::terrain::{MovementCost, Terrain};
+use crate::game::ingame::unit_status::UnitStatus;
+use crate::game::ingame::z_ordering::ZOrdering;
 use crate::game::states::in_game_state::{InGameState, PickedNationsResource};
 use crate::game::states::round_state::ActiveTeam;
-use crate::game::team_setup::Team;
-use crate::game::terrain::{MovementCost, Terrain};
-use crate::game::unit_status::UnitStatus;
-use crate::game::z_ordering::ZOrdering;
 
 pub struct DeployUnitsPlugin;
 
