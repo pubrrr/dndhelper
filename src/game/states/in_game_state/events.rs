@@ -1,7 +1,7 @@
 use crate::game::states::in_game_state::InGameState;
 use bevy::prelude::{info, NextState, Res, ResMut, State};
 
-pub fn skip_events(
+pub(super) fn skip_events(
     in_game_state: Res<State<InGameState>>,
     mut next_in_game_state: ResMut<NextState<InGameState>>,
 ) {

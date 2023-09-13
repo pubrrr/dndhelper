@@ -4,7 +4,7 @@ use crate::game::states::round_state::ActiveTeam;
 use crate::game::team_setup::Team;
 use bevy::prelude::{info, Commands, NextState, Res, ResMut, State};
 
-pub fn skip_pick_commander(
+pub(super) fn skip_pick_commander(
     mut commands: Commands,
     in_game_state: Res<State<InGameState>>,
     mut next_in_game_state: ResMut<NextState<InGameState>>,

@@ -9,12 +9,12 @@ use bevy_egui::EguiContexts;
 use hexx::Hex;
 
 use crate::game::action_points::ActionPoints;
+use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
+use crate::game::asset_loading::nation_assets::UnitKey;
 use crate::game::combat::{CombatConfig, HealthPoints};
 use crate::game::common_components::UnitMarker;
 use crate::game::hex::{HexComponent, HexMarker};
 use crate::game::hovered_hex::HoveredHex;
-use crate::game::nation_asset_resource::NationAssetsResource;
-use crate::game::nation_assets::UnitKey;
 use crate::game::states::in_game_state::{InGameState, PickedNationsResource};
 use crate::game::states::round_state::ActiveTeam;
 use crate::game::team_setup::Team;

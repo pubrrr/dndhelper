@@ -4,7 +4,7 @@ use bevy::prelude::{
 use bevy_egui::egui::Window;
 use bevy_egui::EguiContexts;
 
-use crate::game::nation_asset_resource::{NationAssetsResource, NationKey};
+use crate::game::asset_loading::nation_asset_resource::{NationAssetsResource, NationKey};
 use crate::game::states::in_game_state::InGameState;
 use crate::game::states::round_state::ActiveTeam;
 use crate::game::team_setup::Team;
@@ -21,7 +21,7 @@ pub struct PlayerPickedNationResource {
     pub nation: NationKey,
 }
 
-pub fn pick_nation_menu(
+pub(super) fn pick_nation_menu(
     mut contexts: EguiContexts,
     mut pick_nation_event: EventWriter<PickNationEvent>,
     nation_assets_resource: Res<NationAssetsResource>,
@@ -41,7 +41,7 @@ pub fn pick_nation_menu(
     });
 }
 
-pub fn handle_pick_nation_event(
+pub(super) fn handle_pick_nation_event(
     mut pick_nation_events: EventReader<PickNationEvent>,
     mut commands: Commands,
     mut in_game_state: ResMut<NextState<InGameState>>,

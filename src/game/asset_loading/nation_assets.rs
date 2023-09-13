@@ -16,8 +16,8 @@ pub struct NationAssetCollection {
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Eq, PartialEq, Hash)]
 pub struct UnitKey {
-    pub(crate) nation: String,
-    pub(crate) name: String,
+    pub nation: String,
+    pub name: String,
 }
 
 impl Into<String> for UnitKey {
@@ -111,11 +111,11 @@ fn default_attack_action_point_cost() -> usize {
     2
 }
 
-pub fn default_max_attacks_per_round() -> usize {
+fn default_max_attacks_per_round() -> usize {
     1
 }
 
-pub fn default_range() -> u32 {
+fn default_range() -> u32 {
     1
 }
 

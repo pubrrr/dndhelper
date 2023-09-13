@@ -1,4 +1,5 @@
 pub mod action_points;
+pub mod asset_loading;
 pub mod combat;
 pub mod common_components;
 pub mod egui;
@@ -9,8 +10,6 @@ pub mod hovered_hex;
 pub mod input_system;
 pub mod menu;
 pub mod move_unit;
-pub mod nation_asset_resource;
-pub mod nation_assets;
 pub mod path;
 pub mod post_update_systems;
 pub mod selected_unit;

@@ -4,8 +4,7 @@ use bevy_asset_loader::prelude::AssetCollection;
 
 use crate::common::DynamicNationAssetsDefinition;
 use crate::common::NationAssetsDefinition;
-use crate::game::nation_assets::UnitKey;
-use crate::game::nation_assets::{NationAssetCollection, UnitStats};
+use crate::game::asset_loading::nation_assets::{NationAssetCollection, UnitKey, UnitStats};
 
 #[derive(AssetCollection, Resource)]
 pub struct NationAssetsResourceHelperAssets {
@@ -72,7 +71,7 @@ pub struct Nation {
 #[derive(Debug, Clone)]
 pub struct NationKey(String);
 
-pub fn insert_nation_assets_resource(
+pub(super) fn insert_nation_assets_resource(
     mut commands: Commands,
     nation_assets_resource_helper: Res<NationAssetsResourceHelperAssets>,
     nation_assets_collection: Res<NationAssetCollection>,

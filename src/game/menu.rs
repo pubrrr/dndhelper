@@ -1,9 +1,10 @@
-use crate::game::nation_assets::LoadingState;
-use crate::game::states::game_state::GameState;
-use crate::game::team_setup::QuickstartState;
 use bevy::prelude::{NextState, Res, ResMut, State};
 use bevy_egui::egui::Window;
 use bevy_egui::EguiContexts;
+
+use crate::game::asset_loading::nation_assets::LoadingState;
+use crate::game::states::game_state::GameState;
+use crate::game::states::quickstart::QuickstartState;
 
 pub fn menu_ui(
     mut contexts: EguiContexts,

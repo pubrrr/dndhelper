@@ -8,7 +8,7 @@ use bevy_asset_loader::dynamic_asset::DynamicAssets;
 use bevy_asset_loader::prelude::{DynamicAssetCollection, StandardDynamicAsset};
 
 #[cfg(feature = "bevy")]
-use crate::game::nation_assets::UnitKey;
+use crate::game::asset_loading::nation_assets::UnitKey;
 
 #[cfg(feature = "bevy")]
 #[derive(serde::Deserialize, serde::Serialize, TypeUuid, TypePath, Debug, PartialEq)]
