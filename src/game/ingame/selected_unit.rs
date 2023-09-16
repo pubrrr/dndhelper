@@ -10,10 +10,10 @@ use hexx::Hex;
 
 use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::combat::CombatConfig;
-use crate::game::ingame::common_components::{UnitFilter, UnitMarker};
 use crate::game::ingame::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
 use crate::game::ingame::team_setup::Team;
 use crate::game::ingame::terrain::{MovementCost, Terrain};
+use crate::game::ingame::unit::{UnitFilter, UnitMarker};
 
 #[derive(Resource, Default)]
 pub struct SelectedUnitResource {

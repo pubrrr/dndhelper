@@ -12,11 +12,11 @@ pub struct NationAssetsResourceHelperAssets {
     handle: Handle<DynamicNationAssetsDefinition>,
 }
 
-#[derive(Debug, Clone, Resource)]
+#[derive(Debug, Clone, Resource, Default)]
 pub struct NationAssetsResource {
-    nation_assets_definition: Vec<NationAssetsDefinition>,
-    unit_images: HashMap<String, Handle<Image>>,
-    unit_stats: HashMap<String, UnitStats>,
+    pub(crate) nation_assets_definition: Vec<NationAssetsDefinition>,
+    pub(crate) unit_images: HashMap<String, Handle<Image>>,
+    pub(crate) unit_stats: HashMap<String, UnitStats>,
 }
 
 impl NationAssetsResource {
@@ -68,8 +68,8 @@ pub struct Nation {
     pub key: NationKey,
 }
 
-#[derive(Debug, Clone)]
-pub struct NationKey(String);
+#[derive(Debug, Clone, PartialEq)]
+pub struct NationKey(pub String);
 
 pub(super) fn insert_nation_assets_resource(
     mut commands: Commands,

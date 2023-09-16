@@ -2,12 +2,12 @@ use bevy::prelude::{debug, warn, Entity, EventWriter, Input, MouseButton, Query,
 
 use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::combat::{CombatConfig, CombatEvent};
-use crate::game::ingame::common_components::UnitFilter;
 use crate::game::ingame::hex::HexComponent;
 use crate::game::ingame::hovered_hex::{HoveredHex, HoveredUnitResource};
 use crate::game::ingame::move_unit::MoveUnitEvent;
 use crate::game::ingame::selected_unit::SelectedUnitResource;
 use crate::game::ingame::team_setup::Team;
+use crate::game::ingame::unit::UnitFilter;
 use crate::game::states::round_state::ActiveTeam;
 
 pub(super) fn handle_selected_unit_input(

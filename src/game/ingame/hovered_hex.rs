@@ -2,8 +2,8 @@ use bevy::prelude::{Camera, Entity, GlobalTransform, Query, Res, ResMut, Resourc
 use bevy::window::PrimaryWindow;
 use hexx::Hex;
 
-use crate::game::ingame::common_components::HexFilter;
 use crate::game::ingame::hex::{HexComponent, HexResources};
+use crate::game::ingame::unit::HexFilter;
 
 #[derive(Resource, Default)]
 pub struct HoveredUnitResource(pub Option<Entity>);

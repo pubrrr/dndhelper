@@ -2,11 +2,11 @@ use bevy::prelude::{info, warn, Event, EventReader, EventWriter, Query, Res, Wit
 
 use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::combat::CombatEvent;
-use crate::game::ingame::common_components::UnitFilter;
 use crate::game::ingame::hex::{HexComponent, HexMarker};
 use crate::game::ingame::path::CurrentPath;
 use crate::game::ingame::selected_unit::SelectedUnitResource;
 use crate::game::ingame::terrain::{MovementCost, Terrain};
+use crate::game::ingame::unit::UnitFilter;
 use crate::game::ingame::unit_status::UnitStatus;
 
 #[derive(Event, Debug)]

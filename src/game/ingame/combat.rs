@@ -3,8 +3,8 @@ use bevy::prelude::{
     EventWriter, Query,
 };
 
-use crate::game::ingame::common_components::UnitMarker;
 use crate::game::ingame::game_log::LogEvent;
+use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::unit_status::UnitStatus;
 use crate::game::util::dice::Dice;
 

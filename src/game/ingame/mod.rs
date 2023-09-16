@@ -25,7 +25,6 @@ use crate::game::states::round_state::{round_end_system, ActiveTeam, RoundState}
 
 pub mod action_points;
 pub mod combat;
-pub mod common_components;
 mod egui;
 mod game_log;
 mod health_bar;
@@ -38,6 +37,7 @@ pub mod post_update_systems;
 pub mod selected_unit;
 pub mod team_setup;
 pub mod terrain;
+pub mod unit;
 pub mod unit_status;
 pub mod z_ordering;
 

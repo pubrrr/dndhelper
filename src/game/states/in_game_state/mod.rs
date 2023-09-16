@@ -1,22 +1,14 @@
 use bevy::app::App;
-use bevy::prelude::{
-    in_state, IntoSystemConfigs, NextState, OnEnter, Plugin, PostUpdate, PreUpdate, ResMut,
-    Resource, State, States, Update,
-};
+use bevy::prelude::{NextState, OnEnter, Plugin, ResMut, Resource, State, States};
 use bevy::utils::HashMap;
 
 use crate::game::asset_loading::nation_asset_resource::NationKey;
-use crate::game::ingame::hex::setup_hex_grid;
-use crate::game::ingame::hovered_hex::update_hovered_hex;
-use crate::game::ingame::post_update_systems::update_transform_from_hex;
 use crate::game::ingame::team_setup::Team;
 use crate::game::states::game_state::GameState;
 use crate::game::states::in_game_state::deploy_units::DeployUnitsPlugin;
 use crate::game::states::in_game_state::events::skip_events;
 use crate::game::states::in_game_state::pick_commander::skip_pick_commander;
-use crate::game::states::in_game_state::pick_nation::{
-    handle_pick_nation_event, pick_nation_menu, PickNationEvent,
-};
+use crate::game::states::in_game_state::pick_nation::{PickNationEvent, PickNationPlugin};
 use crate::game::states::round_state::start_round_system;
 
 mod deploy_units;
@@ -28,28 +20,14 @@ pub struct StartupFlowPlugin;
 
 impl Plugin for StartupFlowPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(DeployUnitsPlugin)
+        app.add_plugins((PickNationPlugin, DeployUnitsPlugin))
             .add_state::<InGameState>()
             .add_event::<PickNationEvent>()
             .init_resource::<PickedNationsResource>()
             .add_systems(OnEnter(GameState::InGame), start_game)
-            .add_systems(
-                Update,
-                pick_nation_menu.run_if(in_state(InGameState::PickNation)),
-            )
-            .add_systems(
-                PostUpdate,
-                handle_pick_nation_event.run_if(in_state(InGameState::PickNation)),
-            )
             .add_systems(OnEnter(InGameState::PickCommander), skip_pick_commander)
             .add_systems(OnEnter(InGameState::Events), skip_events)
-            .add_systems(OnEnter(InGameState::DeployUnits), setup_hex_grid)
-            .add_systems(OnEnter(InGameState::Playing), start_round_system)
-            .add_systems(
-                PreUpdate,
-                (update_transform_from_hex, update_hovered_hex)
-                    .run_if(in_state(InGameState::DeployUnits)),
-            );
+            .add_systems(OnEnter(InGameState::Playing), start_round_system);
     }
 }
 
@@ -81,5 +59,233 @@ pub fn start_game(
 ) {
     if in_game_state.get() == &InGameState::Starting {
         next_in_game_state.set(InGameState::PickNation);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use bevy::input::mouse::MouseButtonInput;
+    use bevy::input::{ButtonState, InputPlugin};
+    use bevy::prelude::{
+        AddAsset, AssetPlugin, ColorMaterial, Entity, Event, Events, Handle, Mesh, MouseButton,
+    };
+    use hexx::Hex;
+
+    use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
+    use crate::game::asset_loading::nation_assets::{UnitKey, UnitStats};
+    use crate::game::ingame::hex::HexComponent;
+    use crate::game::ingame::hovered_hex::HoveredHex;
+    use crate::game::ingame::unit::UnitMarker;
+    use crate::game::states::in_game_state::deploy_units::{
+        DeploymentDoneEvent, SelectedUnitToDeploy,
+    };
+    use crate::game::states::round_state::{ActiveTeam, RoundState};
+
+    use super::*;
+
+    const NATION_1: &str = "nation 1";
+    const UNIT_1: &str = "unit 1";
+
+    const NATION_2: &str = "nation 2";
+    const UNIT_2: &str = "unit 2";
+
+    #[test]
+    fn startup_flow() {
+        let mut app = TestApp::init();
+
+        app.pick_nation(Team::Red, NationKey(NATION_1.to_string()));
+        app.pick_nation(Team::Blue, NationKey(NATION_2.to_string()));
+
+        assert_eq!(
+            app.get_picked_nation(Team::Red),
+            NationKey(NATION_1.to_string())
+        );
+        assert_eq!(
+            app.get_picked_nation(Team::Blue),
+            NationKey(NATION_2.to_string())
+        );
+
+        app.update();
+        app.update();
+
+        let unit_1_key = UnitKey {
+            nation: NATION_1.to_string(),
+            name: UNIT_1.to_string(),
+        };
+        app.deploy_unit_at(unit_1_key, Hex::new(2, 0));
+
+        let units = app.get_units();
+        assert_eq!(units.len(), 1);
+        let (unit_marker, hex_component, team) = units[0];
+        assert_eq!(unit_marker, &UnitMarker(UNIT_1.to_string()));
+        assert_eq!(hex_component.0, Hex::new(2, 0));
+        assert_eq!(team, &Team::Red);
+
+        app.send_event(DeploymentDoneEvent);
+
+        app.update();
+
+        let unit_2_key = UnitKey {
+            nation: NATION_2.to_string(),
+            name: "unit 2".to_string(),
+        };
+        app.deploy_unit_at(unit_2_key, Hex::new(-2, 0));
+
+        let units = app.get_units();
+        assert_eq!(units.len(), 2);
+        assert!(units
+            .iter()
+            .find(|(_, _, team)| team == &&Team::Red)
+            .is_some());
+        let (unit_marker, hex_component, _) = units
+            .iter()
+            .find(|(_, _, team)| team == &&Team::Blue)
+            .unwrap();
+        assert_eq!(unit_marker, &&UnitMarker(UNIT_2.to_string()));
+        assert_eq!(hex_component.0, Hex::new(-2, 0));
+
+        app.send_event(DeploymentDoneEvent);
+
+        app.update();
+        app.update();
+
+        assert_eq!(app.get_ingame_state(), &InGameState::Playing);
+    }
+
+    struct TestApp {
+        app: App,
+    }
+
+    impl TestApp {
+        fn init() -> Self {
+            let mut app = App::new();
+
+            let unit_key_1 = UnitKey {
+                nation: NATION_1.to_string(),
+                name: UNIT_1.to_string(),
+            };
+            let unit_key_2 = UnitKey {
+                nation: NATION_2.to_string(),
+                name: UNIT_2.to_string(),
+            };
+
+            app.add_state::<GameState>();
+            app.add_state::<RoundState>();
+            app.insert_resource(NationAssetsResource {
+                nation_assets_definition: vec![],
+                unit_images: HashMap::from([
+                    (unit_key_1.get_image_asset_path(), Handle::default()),
+                    (unit_key_2.get_image_asset_path(), Handle::default()),
+                ]),
+                unit_stats: HashMap::from([
+                    (
+                        unit_key_1.get_stats_asset_path(),
+                        UnitStats {
+                            name: UNIT_1.to_string(),
+                            max_action_points: 0,
+                            max_health_points: 0,
+                            attack: 0,
+                            defense: 0,
+                            attack_action_point_cost: 0,
+                            max_attacks_per_round: 0,
+                            range: 0,
+                        },
+                    ),
+                    (
+                        unit_key_2.get_stats_asset_path(),
+                        UnitStats {
+                            name: UNIT_2.to_string(),
+                            max_action_points: 0,
+                            max_health_points: 0,
+                            attack: 0,
+                            defense: 0,
+                            attack_action_point_cost: 0,
+                            max_attacks_per_round: 0,
+                            range: 0,
+                        },
+                    ),
+                ]),
+            });
+            app.init_resource::<ActiveTeam>();
+            app.init_resource::<HoveredHex>();
+            app.add_plugins((
+                AssetPlugin::default(),
+                InputPlugin::default(),
+                StartupFlowPlugin,
+            ));
+            app.add_asset::<Mesh>();
+            app.add_asset::<ColorMaterial>();
+
+            app.world
+                .resource_mut::<NextState<GameState>>()
+                .set(GameState::InGame);
+
+            app.update();
+
+            Self { app }
+        }
+
+        fn update(&mut self) {
+            self.app.update();
+        }
+
+        fn send_event<E: Event>(&mut self, event: E) {
+            self.app.world.resource_mut::<Events<E>>().send(event);
+        }
+
+        fn set_unit_to_deploy(&mut self, unit: UnitKey) {
+            self.app.world.resource_mut::<SelectedUnitToDeploy>().0 = Some(unit);
+        }
+
+        fn set_hovered_hex(&mut self, hex: Hex) {
+            self.app.world.resource_mut::<HoveredHex>().0 = Some(hex);
+        }
+
+        fn get_picked_nation(&self, player: Team) -> NationKey {
+            self.app
+                .world
+                .resource::<PickedNationsResource>()
+                .nations_by_player[&player]
+                .nation
+                .clone()
+        }
+
+        fn pick_nation(&mut self, player: Team, nation: NationKey) {
+            self.send_event(PickNationEvent { player, nation });
+            self.app.update();
+            self.app.update();
+        }
+
+        fn deploy_unit_at(&mut self, unit: UnitKey, hex: Hex) {
+            self.set_unit_to_deploy(unit);
+            self.set_hovered_hex(hex);
+            self.left_click();
+            self.app.update();
+        }
+
+        fn left_click(&mut self) {
+            self.send_event(MouseButtonInput {
+                button: MouseButton::Left,
+                state: ButtonState::Released,
+                window: Entity::from_raw(0),
+            });
+            self.send_event(MouseButtonInput {
+                button: MouseButton::Left,
+                state: ButtonState::Pressed,
+                window: Entity::from_raw(0),
+            });
+        }
+
+        fn get_units(&mut self) -> Vec<(&UnitMarker, &HexComponent, &Team)> {
+            self.app
+                .world
+                .query::<(&UnitMarker, &HexComponent, &Team)>()
+                .iter(&self.app.world)
+                .collect()
+        }
+
+        fn get_ingame_state(&mut self) -> &InGameState {
+            self.app.world.resource::<State<InGameState>>().get()
+        }
     }
 }

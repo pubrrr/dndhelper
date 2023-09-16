@@ -6,10 +6,10 @@ use bevy_prototype_lyon::prelude::{Fill, PathBuilder, ShapeBundle, Stroke};
 use hexx::algorithms::a_star;
 use hexx::Hex;
 
-use crate::game::ingame::common_components::UnitMarker;
 use crate::game::ingame::hex::{HexComponent, HexResources};
 use crate::game::ingame::hovered_hex::HoveredHex;
 use crate::game::ingame::selected_unit::SelectedUnitResource;
+use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::z_ordering::ZOrdering;
 
 #[derive(Resource, Default, Debug)]
