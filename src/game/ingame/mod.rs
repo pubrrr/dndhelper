@@ -10,14 +10,14 @@ use crate::game::ingame::health_bar::{
 };
 use crate::game::ingame::hovered_hex::{update_hovered_hex, HoveredHex, HoveredUnitResource};
 use crate::game::ingame::input_system::{handle_selected_unit_input, update_hovered_unit};
-use crate::game::ingame::move_unit::{handle_move_event, MoveUnitEvent};
+use crate::game::ingame::move_unit::MoveUnitsPlugin;
 use crate::game::ingame::path::{compute_current_path, despawn_old_path, CurrentPath};
 use crate::game::ingame::post_update_systems::update_transform_from_hex;
 use crate::game::ingame::selected_unit::{
     check_whether_selected_unit_needs_recomputation, reset_selected_unit, update_hex_overlay,
     update_reachable_hexes_cache, update_selected_unit_hex, SelectedUnitResource,
 };
-use crate::game::ingame::unit_status::disengage_apart_units;
+use crate::game::ingame::unit_status::update_engagement;
 use crate::game::menu::menu_ui;
 use crate::game::states::game_state::GameState;
 use crate::game::states::in_game_state::InGameState;
@@ -45,9 +45,9 @@ pub struct IngameLogicPlugin;
 
 impl Plugin for IngameLogicPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<RoundState>()
+        app.add_plugins(MoveUnitsPlugin)
+            .add_state::<RoundState>()
             .add_event::<LogEvent>()
-            .add_event::<MoveUnitEvent>()
             .add_event::<CombatEvent>()
             .init_resource::<ActiveTeam>()
             .init_resource::<HoveredHex>()
@@ -58,13 +58,13 @@ impl Plugin for IngameLogicPlugin {
             .init_resource::<CurrentPath>()
             .add_systems(
                 PreUpdate,
-                (update_transform_from_hex, update_hovered_hex)
-                    .run_if(in_state(RoundState::Moving)),
+                update_hovered_hex.run_if(in_state(RoundState::Input)),
             )
             .add_systems(Update, menu_ui.run_if(in_state(GameState::Loading)))
             .add_systems(
                 PreUpdate,
-                update_reachable_hexes_cache.run_if(in_state(InGameState::Playing)),
+                (update_transform_from_hex, update_reachable_hexes_cache)
+                    .run_if(in_state(InGameState::Playing)),
             )
             .add_systems(
                 Update,
@@ -75,8 +75,8 @@ impl Plugin for IngameLogicPlugin {
                     reset_selected_unit,
                     compute_current_path,
                     despawn_old_path,
-                    handle_selected_unit_input.run_if(in_state(RoundState::Moving)),
-                    update_hovered_unit.run_if(in_state(RoundState::Moving)),
+                    handle_selected_unit_input.run_if(in_state(RoundState::Input)),
+                    update_hovered_unit.run_if(in_state(RoundState::Input)),
                 )
                     .run_if(in_state(InGameState::Playing)),
             )
@@ -89,8 +89,7 @@ impl Plugin for IngameLogicPlugin {
                     update_health_bar_positions,
                     update_health_bar_size,
                     handle_log_events,
-                    disengage_apart_units,
-                    handle_move_event,
+                    update_engagement,
                     handle_combat,
                     despawn_dead_units,
                 )

@@ -5,6 +5,7 @@ use crate::game::ingame::combat::{CombatConfig, CombatEvent};
 use crate::game::ingame::hex::HexComponent;
 use crate::game::ingame::hovered_hex::{HoveredHex, HoveredUnitResource};
 use crate::game::ingame::move_unit::MoveUnitEvent;
+use crate::game::ingame::path::CurrentPath;
 use crate::game::ingame::selected_unit::SelectedUnitResource;
 use crate::game::ingame::team_setup::Team;
 use crate::game::ingame::unit::UnitFilter;
@@ -25,6 +26,7 @@ pub(super) fn handle_selected_unit_input(
     >,
     active_team: Res<ActiveTeam>,
     hovered_hex: Res<HoveredHex>,
+    current_path: Res<CurrentPath>,
     mut combat_event: EventWriter<CombatEvent>,
     mut move_event: EventWriter<MoveUnitEvent>,
 ) {
@@ -77,12 +79,22 @@ pub(super) fn handle_selected_unit_input(
             return;
         };
 
+        let Some(current_path) = &current_path.0 else {
+            warn!(
+                "Ignoring click for selected unit {selected_unit:?}, because had no current path"
+            );
+            return;
+        };
+
         if !reachable_hexes.contains(&hex_cursor_position) {
             debug!("Reachable hexes don't contain cursor position {hex_cursor_position:?}");
             return;
         }
 
-        move_event.send(MoveUnitEvent);
+        move_event.send(MoveUnitEvent {
+            entity: selected_unit,
+            path: current_path.iter().cloned().skip(1).collect(),
+        });
     };
 }
 

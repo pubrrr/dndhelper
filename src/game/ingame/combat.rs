@@ -33,7 +33,7 @@ pub struct CombatConfig {
     pub range: u32,
 }
 
-#[derive(Event, Debug)]
+#[derive(Event, Debug, Clone)]
 pub struct CombatEvent {
     pub attacker: Entity,
     pub defender: Entity,

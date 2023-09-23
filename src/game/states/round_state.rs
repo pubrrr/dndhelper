@@ -7,7 +7,8 @@ use crate::game::ingame::team_setup::Team;
 pub enum RoundState {
     #[default]
     Paused,
-    Moving,
+    Input,
+    MovingUnit,
     RoundEnd,
 }
 
@@ -25,7 +26,7 @@ pub(super) fn start_round_system(
     mut next_round_state: ResMut<NextState<RoundState>>,
 ) {
     if round_state.get() == &RoundState::Paused {
-        next_round_state.set(RoundState::Moving);
+        next_round_state.set(RoundState::Input);
     }
 }
 
@@ -43,5 +44,5 @@ pub fn round_end_system(
 
     active_team.0 = next_team;
 
-    round_state.set(RoundState::Moving);
+    round_state.set(RoundState::Input);
 }

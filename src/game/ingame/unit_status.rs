@@ -34,7 +34,7 @@ impl UnitStatus {
     }
 }
 
-pub(super) fn disengage_apart_units(
+pub(super) fn update_engagement(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     mut units: Query<(Entity, &mut UnitStatus, Ref<HexComponent>, &Team)>,
 ) {

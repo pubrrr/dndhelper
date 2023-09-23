@@ -66,9 +66,7 @@ pub fn start_game(
 mod tests {
     use bevy::input::mouse::MouseButtonInput;
     use bevy::input::{ButtonState, InputPlugin};
-    use bevy::prelude::{
-        AddAsset, AssetPlugin, ColorMaterial, Entity, Event, Events, Handle, Mesh, MouseButton,
-    };
+    use bevy::prelude::{AddAsset, AssetPlugin, ColorMaterial, Entity, Handle, Mesh, MouseButton};
     use hexx::Hex;
 
     use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
@@ -80,6 +78,8 @@ mod tests {
         DeploymentDoneEvent, SelectedUnitToDeploy,
     };
     use crate::game::states::round_state::{ActiveTeam, RoundState};
+    use crate::generate_test_app;
+    use crate::tests::AppWrapper;
 
     use super::*;
 
@@ -152,9 +152,7 @@ mod tests {
         assert_eq!(app.get_ingame_state(), &InGameState::Playing);
     }
 
-    struct TestApp {
-        app: App,
-    }
+    generate_test_app!();
 
     impl TestApp {
         fn init() -> Self {
@@ -223,14 +221,6 @@ mod tests {
             app.update();
 
             Self { app }
-        }
-
-        fn update(&mut self) {
-            self.app.update();
-        }
-
-        fn send_event<E: Event>(&mut self, event: E) {
-            self.app.world.resource_mut::<Events<E>>().send(event);
         }
 
         fn set_unit_to_deploy(&mut self, unit: UnitKey) {

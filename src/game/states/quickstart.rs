@@ -40,7 +40,7 @@ fn quickstart(
     mut round_state: ResMut<NextState<RoundState>>,
 ) {
     in_game_state.set(InGameState::Playing);
-    round_state.set(RoundState::Moving);
+    round_state.set(RoundState::Input);
 
     let nations = nation_assets_resource.get_nations();
 
