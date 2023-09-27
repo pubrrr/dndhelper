@@ -110,8 +110,8 @@ pub(super) fn despawn_dead_units(
 
     for (_, _, mut unit_status) in &mut units {
         for despawned_entity in &despawned_entities {
-            if unit_status.is_engaged_with(&despawned_entity) {
-                unit_status.disengage_with(&despawned_entity);
+            if unit_status.is_engaged_with(despawned_entity) {
+                unit_status.disengage_with(despawned_entity);
             }
         }
     }

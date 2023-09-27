@@ -155,12 +155,13 @@ mod ui {
             };
             ui.separator();
 
-            let selected_unit_assets = nation_assets_resource.get_unit_assets(&selected_unit);
+            let selected_unit_assets = nation_assets_resource.get_unit_assets(selected_unit);
             ui.label(format!("Selected Unit: {:#?}", selected_unit_assets.stats));
         });
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn deploy_units_input_system(
     buttons: Res<Input<MouseButton>>,
     active_team: Res<ActiveTeam>,

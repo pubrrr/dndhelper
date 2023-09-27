@@ -11,6 +11,7 @@ use crate::game::ingame::team_setup::Team;
 use crate::game::ingame::unit::UnitFilter;
 use crate::game::states::round_state::ActiveTeam;
 
+#[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub(super) fn handle_selected_unit_input(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     buttons: Res<Input<MouseButton>>,

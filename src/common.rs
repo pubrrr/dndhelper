@@ -25,15 +25,13 @@ impl DynamicAssetCollection for DynamicNationAssetsDefinition {
         let image_assets = self
             .0
             .iter()
-            .map(|nation_assets| nation_assets.get_units())
-            .flatten()
+            .flat_map(|nation_assets| nation_assets.get_units())
             .map(|unit_key| unit_key.get_image_asset_path())
             .collect();
         let unit_stats_files = self
             .0
             .iter()
-            .map(|nation_assets| nation_assets.get_units())
-            .flatten()
+            .flat_map(|nation_assets| nation_assets.get_units())
             .map(|unit_key| unit_key.get_stats_asset_path())
             .collect();
 

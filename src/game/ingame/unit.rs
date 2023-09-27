@@ -57,7 +57,7 @@ impl From<ProtoUnitBundle> for UnitBundle {
             },
             unit_marker,
             player,
-            unit_status: UnitStatus::new(),
+            unit_status: UnitStatus::default(),
             action_points,
             health_points,
             combat_config,

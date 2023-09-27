@@ -33,7 +33,7 @@ pub fn update_hovered_hex(
             return;
         }
     }
-    if clicked_hex.0 != None {
+    if clicked_hex.0.is_some() {
         clicked_hex.0 = None;
     }
 }

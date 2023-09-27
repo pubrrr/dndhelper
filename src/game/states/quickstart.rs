@@ -73,7 +73,7 @@ fn quickstart(
                 ..default()
             })
             .insert(Team::Red)
-            .insert(UnitStatus::new())
+            .insert(UnitStatus::default())
             .insert(UnitMarker(manf_assets.stats.name.clone()))
             .insert(ActionPoints::new(
                 manf_assets.stats.max_action_points,
@@ -97,7 +97,7 @@ fn quickstart(
             })
             .insert(UnitMarker(tree_assets.stats.name.clone()))
             .insert(Team::Blue)
-            .insert(UnitStatus::new())
+            .insert(UnitStatus::default())
             .insert(ActionPoints::new(
                 tree_assets.stats.max_action_points,
                 tree_assets.stats.max_attacks_per_round,

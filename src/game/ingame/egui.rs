@@ -13,6 +13,7 @@ use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::unit_status::UnitStatus;
 use crate::game::states::round_state::{ActiveTeam, RoundState};
 
+#[allow(clippy::too_many_arguments)]
 pub(super) fn ui_system(
     mut contexts: EguiContexts,
     active_team: Res<ActiveTeam>,

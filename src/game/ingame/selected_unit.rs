@@ -76,6 +76,7 @@ pub(super) fn reset_selected_unit(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub(super) fn update_selected_unit_hex(
     mut commands: Commands,
     selected_unit_resource: Res<SelectedUnitResource>,
@@ -189,6 +190,7 @@ pub(super) fn update_reachable_hexes_cache(
     selected_unit_resource.recompute_cache = false;
 }
 
+#[allow(clippy::type_complexity)]
 pub(super) fn update_hex_overlay(
     mut commands: Commands,
     hex_overlays: Query<

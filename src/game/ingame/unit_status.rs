@@ -5,18 +5,12 @@ use crate::game::ingame::hex::HexComponent;
 use crate::game::ingame::selected_unit::SelectedUnitResource;
 use crate::game::ingame::team_setup::Team;
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 pub struct UnitStatus {
     engaged_with_units: HashSet<Entity>,
 }
 
 impl UnitStatus {
-    pub fn new() -> Self {
-        Self {
-            engaged_with_units: HashSet::new(),
-        }
-    }
-
     pub fn engage_with(&mut self, entity: Entity) {
         self.engaged_with_units.insert(entity);
     }
@@ -52,10 +46,10 @@ pub(super) fn update_engagement(
                             .unsigned_distance_to(changed_hex_component.0);
                         distance == 1
                     })
-                    .map(|(entity, _, _, _)| *&entity)
+                    .map(|(entity, _, _, _)| entity)
                     .collect();
 
-                (*&changed_entity, adjacent_units)
+                (changed_entity, adjacent_units)
             },
         )
         .collect();

@@ -280,8 +280,7 @@ mod tests {
         app.update();
         let combat_events = app.get_events(&mut combat_event_reader);
         let combat_event = combat_events
-            .iter()
-            .next()
+            .first()
             .expect("combat event in second movement step");
         assert_eq!(combat_event.defender, app.unit_entity);
         assert_eq!(combat_event.attacker, enemy_entity);

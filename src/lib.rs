@@ -29,17 +29,13 @@ mod tests {
 
         fn get_events<E: Event + Clone>(&self, event_reader: &mut ManualEventReader<E>) -> Vec<E> {
             event_reader
-                .iter(&self.app().world.resource::<Events<E>>())
+                .iter(self.app().world.resource::<Events<E>>())
                 .cloned()
                 .collect()
-
-            // let events = self.app().world.resource::<Events<E>>();
-            // let mut event_reader = events.get_reader();
-            // event_reader.iter(&events).cloned().collect()
         }
 
         fn get<S: States>(&self) -> &S {
-            &self.app().world.resource::<State<S>>()
+            self.app().world.resource::<State<S>>()
         }
 
         fn set<S: States>(&mut self, next_state: S) {

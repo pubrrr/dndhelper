@@ -133,10 +133,7 @@ mod tests {
 
         let units = app.get_units();
         assert_eq!(units.len(), 2);
-        assert!(units
-            .iter()
-            .find(|(_, _, team)| team == &&Team::Red)
-            .is_some());
+        assert!(units.iter().any(|(_, _, team)| team == &&Team::Red));
         let (unit_marker, hex_component, _) = units
             .iter()
             .find(|(_, _, team)| team == &&Team::Blue)
@@ -206,11 +203,7 @@ mod tests {
             });
             app.init_resource::<ActiveTeam>();
             app.init_resource::<HoveredHex>();
-            app.add_plugins((
-                AssetPlugin::default(),
-                InputPlugin::default(),
-                StartupFlowPlugin,
-            ));
+            app.add_plugins((AssetPlugin::default(), InputPlugin, StartupFlowPlugin));
             app.add_asset::<Mesh>();
             app.add_asset::<ColorMaterial>();
 

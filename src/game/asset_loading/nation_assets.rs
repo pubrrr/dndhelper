@@ -20,9 +20,9 @@ pub struct UnitKey {
     pub name: String,
 }
 
-impl Into<String> for UnitKey {
-    fn into(self) -> String {
-        format!("{}:{}", self.nation, self.name)
+impl From<UnitKey> for String {
+    fn from(unit_key: UnitKey) -> Self {
+        format!("{}:{}", unit_key.nation, unit_key.name)
     }
 }
 
@@ -66,8 +66,7 @@ impl DynamicAsset for UnitKey {
     fn load(&self, asset_server: &AssetServer) -> Vec<HandleUntyped> {
         self.get_standard_assets()
             .iter()
-            .map(|asset| asset.load(asset_server))
-            .flatten()
+            .flat_map(|asset| asset.load(asset_server))
             .collect()
     }
 
