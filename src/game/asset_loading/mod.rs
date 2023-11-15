@@ -50,3 +50,76 @@ impl Plugin for AssetLoadingPlugin {
         .add_systems(OnEnter(LoadingState::Done), insert_nation_assets_resource);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
+    use crate::scan_assets::write_nations_assets;
+    use bevy::log::{Level, LogPlugin};
+    use bevy::prelude::{default, AssetPlugin, ImagePlugin, State};
+    use bevy::tasks::{IoTaskPool, TaskPoolBuilder};
+    use std::thread::sleep;
+    use std::time::Duration;
+
+    #[test]
+    fn all_assets_can_be_loaded() {
+        write_nations_assets().unwrap();
+
+        let mut app = App::new();
+
+        app.add_plugins((
+            AssetPlugin::default(),
+            ImagePlugin::default(),
+            AssetLoadingPlugin,
+            LogPlugin {
+                level: Level::TRACE,
+                ..default()
+            },
+        ));
+        IoTaskPool::init(|| {
+            TaskPoolBuilder::default()
+                .thread_name("IO Task Pool".to_string())
+                .build()
+        });
+
+        app.update();
+
+        sleep(Duration::from_millis(1000));
+
+        app.update();
+        app.update();
+        app.update();
+
+        sleep(Duration::from_millis(1000));
+
+        app.update();
+        app.update();
+        app.update();
+
+        sleep(Duration::from_millis(1000));
+
+        app.update();
+        app.update();
+        app.update();
+
+        sleep(Duration::from_millis(1000));
+
+        app.update();
+        app.update();
+        app.update();
+
+        sleep(Duration::from_millis(1000));
+
+        app.update();
+        app.update();
+        app.update();
+
+        assert_eq!(
+            app.world.resource::<State<LoadingState>>().get(),
+            &LoadingState::Done
+        );
+        let nation_assets_resource = app.world.resource::<NationAssetsResource>();
+        assert!(nation_assets_resource.nation_assets_definition.len() > 0);
+    }
+}
