@@ -83,7 +83,7 @@ fn handle_move_event(
     mut moving_unit_resource: ResMut<MovingUnitsResource>,
     mut round_state: ResMut<NextState<RoundState>>,
 ) {
-    for move_event in move_events.iter() {
+    for move_event in move_events.read() {
         let cost: usize = move_event
             .path
             .iter()

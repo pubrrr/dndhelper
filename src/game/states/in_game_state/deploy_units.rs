@@ -220,7 +220,7 @@ fn handle_deploy_unit_event(
     nation_assets_resource: Res<NationAssetsResource>,
     mut deploy_unit_events: EventReader<DeployUnitEvent>,
 ) {
-    for event in deploy_unit_events.iter() {
+    for event in deploy_unit_events.read() {
         let unit_assets = nation_assets_resource.get_unit_assets(&event.unit);
 
         let unit_bundle: UnitBundle = ProtoUnitBundle {
@@ -256,7 +256,7 @@ fn handle_deployment_done_event(
     mut deploy_points: ResMut<DeployPoints>,
     mut selected_unit_to_deploy: ResMut<SelectedUnitToDeploy>,
 ) {
-    if deployment_done_events.iter().next().is_some() {
+    if deployment_done_events.read().next().is_some() {
         match active_player.0 {
             Team::Red => {
                 selected_unit_to_deploy.0 = None;

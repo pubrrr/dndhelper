@@ -1,6 +1,6 @@
 use bevy::prelude::{
     default, trace, Color, Commands, Component, DespawnRecursiveExt, DetectChanges, Entity, Query,
-    Res, ResMut, Resource, Transform, With,
+    Res, ResMut, Resource, SpatialBundle, Transform, With,
 };
 use bevy_prototype_lyon::prelude::{Fill, PathBuilder, ShapeBundle, Stroke};
 use hexx::algorithms::a_star;
@@ -86,7 +86,10 @@ pub(super) fn compute_current_path(
             PathMarker,
             ShapeBundle {
                 path: path_builder.build(),
-                transform: Transform::from_xyz(0., 0., ZOrdering::PATH_LINES),
+                spatial: SpatialBundle {
+                    transform: Transform::from_xyz(0., 0., ZOrdering::PATH_LINES),
+                    ..default()
+                },
                 ..default()
             },
             Stroke::new(Color::BLACK, 10.),

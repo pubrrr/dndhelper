@@ -79,7 +79,7 @@ pub(super) fn handle_pick_nation_event(
     mut commands: Commands,
     mut in_game_state: ResMut<NextState<InGameState>>,
 ) {
-    let Some(event) = pick_nation_events.iter().next() else {
+    let Some(event) = pick_nation_events.read().next() else {
         return;
     };
 

@@ -44,7 +44,7 @@ pub(super) fn handle_combat(
     mut combat_events: EventReader<CombatEvent>,
     mut log_event: EventWriter<LogEvent>,
 ) {
-    for combat_event in combat_events.iter() {
+    for combat_event in combat_events.read() {
         handle_combat_event(&mut units, &mut log_event, combat_event);
     }
 }

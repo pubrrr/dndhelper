@@ -29,7 +29,7 @@ mod tests {
 
         fn get_events<E: Event + Clone>(&self, event_reader: &mut ManualEventReader<E>) -> Vec<E> {
             event_reader
-                .iter(self.app().world.resource::<Events<E>>())
+                .read(self.app().world.resource::<Events<E>>())
                 .cloned()
                 .collect()
         }

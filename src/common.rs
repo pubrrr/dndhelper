@@ -1,7 +1,7 @@
 #[cfg(feature = "bevy")]
-use bevy::prelude::info;
+use bevy::prelude::{info, Asset};
 #[cfg(feature = "bevy")]
-use bevy::reflect::{TypePath, TypeUuid};
+use bevy::reflect::TypePath;
 #[cfg(feature = "bevy")]
 use bevy_asset_loader::dynamic_asset::DynamicAssets;
 #[cfg(feature = "bevy")]
@@ -11,8 +11,7 @@ use bevy_asset_loader::prelude::{DynamicAssetCollection, StandardDynamicAsset};
 use crate::game::asset_loading::nation_assets::UnitKey;
 
 #[cfg(feature = "bevy")]
-#[derive(serde::Deserialize, serde::Serialize, TypeUuid, TypePath, Debug, PartialEq)]
-#[uuid = "20eb6907-3d6f-4a93-bb03-62b812182055"]
+#[derive(serde::Deserialize, serde::Serialize, TypePath, Debug, PartialEq, Asset)]
 pub struct DynamicNationAssetsDefinition(pub Vec<NationAssetsDefinition>);
 
 #[cfg(not(feature = "bevy"))]

@@ -1,6 +1,6 @@
-use bevy::asset::Error;
-use bevy::prelude::{AssetServer, Handle, HandleUntyped, Image, Resource, States, World};
-use bevy::reflect::{TypePath, TypeUuid};
+use anyhow::Error;
+use bevy::prelude::{Asset, AssetServer, Handle, Image, Resource, States, UntypedHandle, World};
+use bevy::reflect::TypePath;
 use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::{
     AssetCollection, DynamicAsset, DynamicAssetType, StandardDynamicAsset,
@@ -63,7 +63,7 @@ impl UnitKey {
 }
 
 impl DynamicAsset for UnitKey {
-    fn load(&self, asset_server: &AssetServer) -> Vec<HandleUntyped> {
+    fn load(&self, asset_server: &AssetServer) -> Vec<UntypedHandle> {
         self.get_standard_assets()
             .iter()
             .flat_map(|asset| asset.load(asset_server))
@@ -90,8 +90,7 @@ impl DynamicAsset for UnitKey {
     }
 }
 
-#[derive(serde::Deserialize, serde::Serialize, TypeUuid, TypePath, Clone, Debug, PartialEq)]
-#[uuid = "6e753c5b-0158-48ac-a54e-c90cd6022815"]
+#[derive(serde::Deserialize, serde::Serialize, TypePath, Clone, Debug, PartialEq, Asset)]
 pub struct UnitStats {
     pub name: String,
     pub max_action_points: usize,

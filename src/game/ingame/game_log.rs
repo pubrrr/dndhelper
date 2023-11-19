@@ -16,7 +16,7 @@ pub(super) fn handle_log_events(
     mut log_events: EventReader<LogEvent>,
     mut log_record: ResMut<LogRecord>,
 ) {
-    for log_event in log_events.iter() {
+    for log_event in log_events.read() {
         log_record.storage.push(log_event.clone());
     }
 }

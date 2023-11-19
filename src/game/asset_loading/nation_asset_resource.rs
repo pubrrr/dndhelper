@@ -1,4 +1,4 @@
-use bevy::prelude::{AssetServer, Assets, Commands, Handle, Image, Res, Resource};
+use bevy::prelude::{Assets, Commands, Handle, Image, Res, Resource};
 use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::AssetCollection;
 

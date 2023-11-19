@@ -34,6 +34,9 @@ impl Plugin for AssetLoadingPlugin {
             .continue_to_state(LoadingState::Done)
             .set_standard_dynamic_asset_collection_file_endings(vec![]),
         )
+        .register_dynamic_asset_collection::<_, DynamicNationAssetsDefinition>(
+            LoadingState::LoadingDynamicAssets,
+        )
         .add_dynamic_collection_to_loading_state::<_, DynamicNationAssetsDefinition>(
             LoadingState::LoadingDynamicAssets,
             GENERATED_NATIONS_ASSETS_FILE,

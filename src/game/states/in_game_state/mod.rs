@@ -66,7 +66,7 @@ pub fn start_game(
 mod tests {
     use bevy::input::mouse::MouseButtonInput;
     use bevy::input::{ButtonState, InputPlugin};
-    use bevy::prelude::{AddAsset, AssetPlugin, ColorMaterial, Entity, Handle, Mesh, MouseButton};
+    use bevy::prelude::{AssetApp, AssetPlugin, ColorMaterial, Entity, Handle, Mesh, MouseButton};
     use hexx::Hex;
 
     use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
@@ -204,8 +204,8 @@ mod tests {
             app.init_resource::<ActiveTeam>();
             app.init_resource::<HoveredHex>();
             app.add_plugins((AssetPlugin::default(), InputPlugin, StartupFlowPlugin));
-            app.add_asset::<Mesh>();
-            app.add_asset::<ColorMaterial>();
+            app.init_asset::<Mesh>();
+            app.init_asset::<ColorMaterial>();
 
             app.world
                 .resource_mut::<NextState<GameState>>()
