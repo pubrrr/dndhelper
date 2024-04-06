@@ -20,7 +20,7 @@ pub struct QuickstartPlugin;
 
 impl Plugin for QuickstartPlugin {
     fn build(&self, app: &mut App) {
-        app.add_state::<QuickstartState>()
+        app.init_state::<QuickstartState>()
             .add_systems(OnEnter(QuickstartState::DoIt), (setup_hex_grid, quickstart));
     }
 }

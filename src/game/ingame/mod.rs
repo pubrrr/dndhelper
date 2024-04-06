@@ -46,7 +46,7 @@ pub struct IngameLogicPlugin;
 impl Plugin for IngameLogicPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MoveUnitsPlugin)
-            .add_state::<RoundState>()
+            .init_state::<RoundState>()
             .add_event::<LogEvent>()
             .add_event::<CombatEvent>()
             .init_resource::<ActiveTeam>()

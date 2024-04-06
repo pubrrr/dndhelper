@@ -1,4 +1,5 @@
-use bevy::prelude::{debug, warn, Entity, EventWriter, Input, MouseButton, Query, Res, ResMut};
+use bevy::input::ButtonInput;
+use bevy::prelude::{debug, warn, Entity, EventWriter, MouseButton, Query, Res, ResMut};
 
 use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::combat::{CombatConfig, CombatEvent};
@@ -14,7 +15,7 @@ use crate::game::states::round_state::ActiveTeam;
 #[allow(clippy::type_complexity, clippy::too_many_arguments)]
 pub(super) fn handle_selected_unit_input(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
-    buttons: Res<Input<MouseButton>>,
+    buttons: Res<ButtonInput<MouseButton>>,
     #[allow(clippy::type_complexity)] mut units: Query<
         (
             Entity,

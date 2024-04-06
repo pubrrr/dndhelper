@@ -29,6 +29,7 @@ fn main() {
                 .set(LogPlugin {
                     level: Level::DEBUG,
                     filter: "wgpu=error,naga=warn,bevy_render=info,bevy_app=info".to_string(),
+                    update_subscriber: None,
                 }),
             EguiPlugin,
             AssetLoadingPlugin,
@@ -37,7 +38,7 @@ fn main() {
             IngameLogicPlugin,
             ShapePlugin,
         ))
-        .add_state::<GameState>()
+        .init_state::<GameState>()
         .add_systems(Startup, setup_camera)
         .run();
 }

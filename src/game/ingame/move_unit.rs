@@ -297,8 +297,8 @@ mod tests {
         fn build_spawning_unit_at(hex: Hex) -> TestApp {
             let mut app = App::new();
 
-            app.add_state::<RoundState>();
-            app.add_state::<InGameState>();
+            app.init_state::<RoundState>();
+            app.init_state::<InGameState>();
             app.world
                 .resource_mut::<NextState<InGameState>>()
                 .set(InGameState::Playing);

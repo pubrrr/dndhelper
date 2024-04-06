@@ -59,7 +59,7 @@ pub(super) fn compute_current_path(
         return;
     };
 
-    let Some(hexes_way) = a_star(unit_hex.0, hovered_hex, |hex| {
+    let Some(hexes_way) = a_star(unit_hex.0, hovered_hex, |hex, _| {
         selected_unit_resource
             .cost_map()
             .get(&hex)
@@ -82,19 +82,18 @@ pub(super) fn compute_current_path(
         path_builder.move_to(from);
         path_builder.line_to(to);
 
-        commands.spawn((
-            PathMarker,
-            ShapeBundle {
+        commands
+            .spawn(PathMarker)
+            .insert(ShapeBundle {
                 path: path_builder.build(),
                 spatial: SpatialBundle {
                     transform: Transform::from_xyz(0., 0., ZOrdering::PATH_LINES),
                     ..default()
                 },
                 ..default()
-            },
-            Stroke::new(Color::BLACK, 10.),
-            Fill::color(Color::RED),
-        ));
+            })
+            .insert(Stroke::new(Color::BLACK, 10.))
+            .insert(Fill::color(Color::RED));
     }
 
     current_path.0 = Some(hexes_way);
