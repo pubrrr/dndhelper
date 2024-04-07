@@ -21,7 +21,7 @@ pub struct StartupFlowPlugin;
 impl Plugin for StartupFlowPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((PickNationPlugin, DeployUnitsPlugin))
-            .add_state::<InGameState>()
+            .init_state::<InGameState>()
             .add_event::<PickNationEvent>()
             .init_resource::<PickedNationsResource>()
             .add_systems(OnEnter(GameState::InGame), start_game)
@@ -164,8 +164,8 @@ mod tests {
                 name: UNIT_2.to_string(),
             };
 
-            app.add_state::<GameState>();
-            app.add_state::<RoundState>();
+            app.init_state::<GameState>();
+            app.init_state::<RoundState>();
             app.insert_resource(NationAssetsResource {
                 nation_assets_definition: vec![],
                 unit_images: HashMap::from([

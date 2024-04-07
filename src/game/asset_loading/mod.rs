@@ -1,6 +1,6 @@
 use bevy::app::App;
 use bevy::prelude::{OnEnter, Plugin};
-use bevy_asset_loader::prelude::LoadingStateAppExt;
+use bevy_asset_loader::prelude::{ConfigureLoadingState, LoadingStateAppExt};
 use bevy_common_assets::ron::RonAssetPlugin;
 
 use crate::common::DynamicNationAssetsDefinition;
@@ -21,31 +21,24 @@ impl Plugin for AssetLoadingPlugin {
             RonAssetPlugin::<DynamicNationAssetsDefinition>::new(&["assets.ron"]),
             RonAssetPlugin::<UnitStats>::new(&["stats.ron"]),
         ))
-        .add_state::<LoadingState>()
+        .init_state::<LoadingState>()
         .add_loading_state(
             bevy_asset_loader::loading_state::LoadingState::new(LoadingState::LoadingDynamicAssets)
                 .continue_to_state(LoadingState::LoadingNationAssetsDefinition)
-                .set_standard_dynamic_asset_collection_file_endings(vec![]),
+                .set_standard_dynamic_asset_collection_file_endings(vec![])
+                .register_dynamic_asset_collection::<DynamicNationAssetsDefinition>()
+                .with_dynamic_assets_file::<DynamicNationAssetsDefinition>(
+                    GENERATED_NATIONS_ASSETS_FILE,
+                )
+                .load_collection::<NationAssetCollection>(),
         )
         .add_loading_state(
             bevy_asset_loader::loading_state::LoadingState::new(
                 LoadingState::LoadingNationAssetsDefinition,
             )
             .continue_to_state(LoadingState::Done)
-            .set_standard_dynamic_asset_collection_file_endings(vec![]),
-        )
-        .register_dynamic_asset_collection::<_, DynamicNationAssetsDefinition>(
-            LoadingState::LoadingDynamicAssets,
-        )
-        .add_dynamic_collection_to_loading_state::<_, DynamicNationAssetsDefinition>(
-            LoadingState::LoadingDynamicAssets,
-            GENERATED_NATIONS_ASSETS_FILE,
-        )
-        .add_collection_to_loading_state::<_, NationAssetCollection>(
-            LoadingState::LoadingDynamicAssets,
-        )
-        .add_collection_to_loading_state::<_, NationAssetsResourceHelperAssets>(
-            LoadingState::LoadingNationAssetsDefinition,
+            .set_standard_dynamic_asset_collection_file_endings(vec![])
+            .load_collection::<NationAssetsResourceHelperAssets>(),
         )
         .add_systems(OnEnter(LoadingState::Done), insert_nation_assets_resource);
     }

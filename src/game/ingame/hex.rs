@@ -3,6 +3,7 @@ use bevy::prelude::{
     ResMut, Resource, Transform, Vec2, Vec3,
 };
 use bevy::render::mesh::{Indices, PrimitiveTopology};
+use bevy::render::render_asset::RenderAssetUsages;
 use bevy::utils::HashMap;
 use hexx::{Hex, HexLayout, PlaneMeshBuilder};
 
@@ -39,7 +40,7 @@ pub fn setup_hex_grid(
 
     let mesh = meshes.add(hexagonal_plane(&hex_layout));
 
-    let not_reachable_overlay_color = materials.add(Color::BLACK.with_a(0.7).into());
+    let not_reachable_overlay_color = materials.add(ColorMaterial::from(Color::BLACK.with_a(0.7)));
 
     let terrain_map = build_terrain_map(&mut materials);
 
@@ -87,12 +88,12 @@ pub fn setup_hex_grid(
             mesh: mesh.clone().into(),
             transform: Transform::from_xyz(0., 0., ZOrdering::SELECTED_UNIT_HEX)
                 .with_scale(Vec3::splat(1.)),
-            material: materials.add(Color::NONE.into()),
+            material: materials.add(ColorMaterial::from(Color::NONE)),
             ..default()
         })
         .insert(HexComponent(Hex::ZERO))
         .insert(SelectedUnitHexMarker {
-            selected_hex_color: materials.add(Color::YELLOW.into()),
+            selected_hex_color: materials.add(ColorMaterial::from(Color::YELLOW)),
         });
 
     commands.insert_resource(HexResources {
@@ -112,7 +113,7 @@ fn build_terrain_map<'a>(
                     name: "Plains".to_string(),
                     movement_cost: MovementCost::Passable(1),
                 },
-                materials.add(Color::YELLOW_GREEN.into()),
+                materials.add(ColorMaterial::from(Color::YELLOW_GREEN)),
             ),
         ),
         (
@@ -122,7 +123,7 @@ fn build_terrain_map<'a>(
                     name: "Forest".to_string(),
                     movement_cost: MovementCost::Passable(2),
                 },
-                materials.add(Color::DARK_GREEN.into()),
+                materials.add(ColorMaterial::from(Color::DARK_GREEN)),
             ),
         ),
         (
@@ -132,7 +133,7 @@ fn build_terrain_map<'a>(
                     name: "Water".to_string(),
                     movement_cost: MovementCost::Impassable,
                 },
-                materials.add(Color::BLUE.into()),
+                materials.add(ColorMaterial::from(Color::BLUE)),
             ),
         ),
     ])
@@ -140,10 +141,13 @@ fn build_terrain_map<'a>(
 
 fn hexagonal_plane(hex_layout: &HexLayout) -> Mesh {
     let mesh_info = PlaneMeshBuilder::new(hex_layout).facing(Vec3::Z).build();
-    let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+    let mut mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    );
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, mesh_info.vertices);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, mesh_info.normals);
     mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, mesh_info.uvs);
-    mesh.set_indices(Some(Indices::U16(mesh_info.indices)));
+    mesh.insert_indices(Indices::U16(mesh_info.indices));
     mesh
 }

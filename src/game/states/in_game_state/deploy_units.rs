@@ -2,7 +2,7 @@ use bevy::app::App;
 #[cfg(not(test))]
 use bevy::prelude::PreUpdate;
 use bevy::prelude::{
-    debug, in_state, Commands, Event, EventReader, EventWriter, Input, IntoSystemConfigs,
+    debug, in_state, ButtonInput, Commands, Event, EventReader, EventWriter, IntoSystemConfigs,
     MouseButton, NextState, OnEnter, OnExit, Plugin, PostUpdate, Query, Res, ResMut, Resource,
     Transform, Update, Vec3, With,
 };
@@ -163,7 +163,7 @@ mod ui {
 
 #[allow(clippy::too_many_arguments)]
 fn deploy_units_input_system(
-    buttons: Res<Input<MouseButton>>,
+    buttons: Res<ButtonInput<MouseButton>>,
     active_team: Res<ActiveTeam>,
     hovered_hex: Res<HoveredHex>,
     selected_unit_to_deploy: Res<SelectedUnitToDeploy>,

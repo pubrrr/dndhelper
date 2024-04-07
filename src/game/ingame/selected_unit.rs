@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use bevy::prelude::{
-    debug, Changed, ColorMaterial, Commands, Component, DetectChanges, Entity, Handle, Input,
+    debug, ButtonInput, Changed, ColorMaterial, Commands, Component, DetectChanges, Entity, Handle,
     KeyCode, Query, Res, ResMut, Resource, With, Without,
 };
 use bevy::utils::HashMap;
@@ -69,7 +69,7 @@ pub(super) fn check_whether_selected_unit_needs_recomputation(
 
 pub(super) fn reset_selected_unit(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
-    keys: Res<Input<KeyCode>>,
+    keys: Res<ButtonInput<KeyCode>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
         selected_unit_resource.set_selected_unit(None);

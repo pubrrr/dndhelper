@@ -1,9 +1,8 @@
-use bevy::prelude::shape::Quad;
 use bevy::prelude::{
     debug, default, info, warn, Added, Assets, BuildChildren, Changed, Children, Color,
     ColorMaterial, ColorMesh2dBundle, Commands, Component, DespawnRecursiveExt, Entity, FromWorld,
-    Handle, Mesh, Query, Res, ResMut, Resource, SpriteBundle, Transform, Vec3, With, Without,
-    World,
+    Handle, Mesh, Query, Rectangle, Res, ResMut, Resource, SpriteBundle, Transform, Vec3, With,
+    Without, World,
 };
 use bevy::sprite::Mesh2dHandle;
 
@@ -33,11 +32,11 @@ pub struct HealthIndicatorBarMarker;
 impl FromWorld for HealthBarResources {
     fn from_world(world: &mut World) -> Self {
         let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        let quad_mesh = meshes.add(Mesh::from(Quad::default())).into();
+        let quad_mesh = meshes.add(Mesh::from(Rectangle::default())).into();
         let mut color_materials = world.resource_mut::<Assets<ColorMaterial>>();
-        let background_color = color_materials.add(Color::BLACK.into());
-        let green_color = color_materials.add(Color::GREEN.into());
-        let red_color = color_materials.add(Color::RED.into());
+        let background_color = color_materials.add(ColorMaterial::from(Color::BLACK));
+        let green_color = color_materials.add(ColorMaterial::from(Color::GREEN));
+        let red_color = color_materials.add(ColorMaterial::from(Color::RED));
 
         Self {
             quad_mesh,
@@ -56,14 +55,12 @@ pub(super) fn add_health_bars(
     for entity in entities_with_health.iter() {
         info!("adding health bar for {entity:?}");
         commands
-            .spawn((
-                HealthBarForEntity { entity },
-                SpriteBundle {
-                    transform: Transform::from_xyz(0., 0., ZOrdering::HEALTH_BAR)
-                        .with_scale(Vec3::new(HEX_RADIUS, HEX_RADIUS / 4., 1.)),
-                    ..default()
-                },
-            ))
+            .spawn(HealthBarForEntity { entity })
+            .insert(SpriteBundle {
+                transform: Transform::from_xyz(0., 0., ZOrdering::HEALTH_BAR)
+                    .with_scale(Vec3::new(HEX_RADIUS, HEX_RADIUS / 4., 1.)),
+                ..default()
+            })
             .with_children(|child_builder| {
                 child_builder.spawn(ColorMesh2dBundle {
                     mesh: health_bar_resources.quad_mesh.clone(),
@@ -81,8 +78,8 @@ pub(super) fn add_health_bars(
                     )),
                     ..default()
                 });
-                child_builder.spawn((
-                    ColorMesh2dBundle {
+                child_builder
+                    .spawn(ColorMesh2dBundle {
                         mesh: health_bar_resources.quad_mesh.clone(),
                         material: health_bar_resources.green_color.clone(),
                         transform: Transform::from_xyz(0., 0., 2.).with_scale(Vec3::new(
@@ -91,9 +88,8 @@ pub(super) fn add_health_bars(
                             1.,
                         )),
                         ..default()
-                    },
-                    HealthIndicatorBarMarker,
-                ));
+                    })
+                    .insert(HealthIndicatorBarMarker);
             });
     }
 }
