@@ -6,6 +6,8 @@ use bevy_asset_loader::prelude::{
     AssetCollection, DynamicAsset, DynamicAssetType, StandardDynamicAsset,
 };
 
+use crate::game::ingame::combat::PassiveCombatAbility;
+
 #[derive(AssetCollection, Resource, Debug, Clone)]
 pub struct NationAssetCollection {
     #[asset(key = "unit_images", collection(typed, mapped))]
@@ -103,6 +105,7 @@ pub struct UnitStats {
     pub max_attacks_per_round: usize,
     #[serde(default = "default_range")]
     pub range: u32,
+    pub passive_combat_abilities: Vec<PassiveCombatAbility>,
 }
 
 fn default_attack_action_point_cost() -> usize {

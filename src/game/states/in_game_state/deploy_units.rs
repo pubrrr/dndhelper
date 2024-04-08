@@ -3,15 +3,15 @@ use bevy::app::App;
 use bevy::prelude::PreUpdate;
 use bevy::prelude::{
     debug, in_state, ButtonInput, Commands, Event, EventReader, EventWriter, IntoSystemConfigs,
-    MouseButton, NextState, OnEnter, OnExit, Plugin, PostUpdate, Query, Res, ResMut, Resource,
-    Transform, Update, Vec3, With,
+    Local, MouseButton, NextState, OnEnter, OnExit, Plugin, PostUpdate, Query, Res, ResMut,
+    Resource, Transform, Update, Vec3, With,
 };
 use hexx::Hex;
 
 use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
 use crate::game::asset_loading::nation_assets::UnitKey;
 use crate::game::ingame::action_points::ActionPoints;
-use crate::game::ingame::combat::{CombatConfig, HealthPoints};
+use crate::game::ingame::combat::{CombatConfig, HealthPoints, PassiveCombatAbilitySystemIds};
 use crate::game::ingame::hex::{setup_hex_grid, HexComponent, HexMarker};
 #[cfg(not(test))]
 use crate::game::ingame::hovered_hex::update_hovered_hex;
@@ -219,6 +219,7 @@ fn handle_deploy_unit_event(
     mut commands: Commands,
     nation_assets_resource: Res<NationAssetsResource>,
     mut deploy_unit_events: EventReader<DeployUnitEvent>,
+    passive_combat_ability_system_ids: Local<PassiveCombatAbilitySystemIds>,
 ) {
     for event in deploy_unit_events.read() {
         let unit_assets = nation_assets_resource.get_unit_assets(&event.unit);
@@ -238,6 +239,14 @@ fn handle_deploy_unit_event(
                 attack: unit_assets.stats.attack,
                 defense: unit_assets.stats.defense,
                 range: unit_assets.stats.range,
+                passive_combat_abilities: unit_assets
+                    .stats
+                    .passive_combat_abilities
+                    .into_iter()
+                    .map(|ability| {
+                        passive_combat_ability_system_ids.get_registered_ability(ability)
+                    })
+                    .collect(),
             },
             hex: event.hex,
         }

@@ -8,6 +8,9 @@ pub enum RoundState {
     #[default]
     Paused,
     Input,
+    PreCombat,
+    Combat,
+    PostCombat,
     MovingUnit,
     RoundEnd,
 }
