@@ -1,9 +1,11 @@
 use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::combat::{CombatConfig, HealthPoints};
-use bevy::prelude::{Bundle, Component, Handle, Image, SpriteBundle, Transform, With, Without};
+use bevy::prelude::{
+    default, Bundle, Component, Handle, Image, Sprite, SpriteBundle, Transform, With, Without,
+};
 use hexx::Hex;
 
-use crate::game::ingame::hex::{HexComponent, HexMarker};
+use crate::game::ingame::hex::{HexComponent, HexMarker, HEX_RADIUS};
 use crate::game::ingame::team_setup::Team;
 use crate::game::ingame::unit_status::UnitStatus;
 
@@ -51,6 +53,10 @@ impl From<ProtoUnitBundle> for UnitBundle {
 
         Self {
             sprite_bundle: SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some((HEX_RADIUS * 2.5, HEX_RADIUS * 2.5).into()),
+                    ..default()
+                },
                 texture,
                 transform,
                 ..Default::default()

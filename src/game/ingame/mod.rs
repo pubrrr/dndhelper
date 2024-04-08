@@ -2,7 +2,7 @@ use bevy::app::App;
 use bevy::prelude::{in_state, IntoSystemConfigs, OnEnter, Plugin, PostUpdate, PreUpdate, Update};
 
 use crate::game::ingame::action_points::reset_action_points;
-use crate::game::ingame::combat::{despawn_dead_units, handle_combat, CombatEvent};
+use crate::game::ingame::combat::{CombatEvent, CombatPlugin};
 use crate::game::ingame::egui::ui_system;
 use crate::game::ingame::game_log::{display_log_events, handle_log_events, LogEvent, LogRecord};
 use crate::game::ingame::health_bar::{
@@ -45,7 +45,7 @@ pub struct IngameLogicPlugin;
 
 impl Plugin for IngameLogicPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(MoveUnitsPlugin)
+        app.add_plugins((MoveUnitsPlugin, CombatPlugin))
             .init_state::<RoundState>()
             .add_event::<LogEvent>()
             .add_event::<CombatEvent>()
@@ -75,8 +75,8 @@ impl Plugin for IngameLogicPlugin {
                     reset_selected_unit,
                     compute_current_path,
                     despawn_old_path,
-                    handle_selected_unit_input.run_if(in_state(RoundState::Input)),
-                    update_hovered_unit.run_if(in_state(RoundState::Input)),
+                    (handle_selected_unit_input, update_hovered_unit)
+                        .run_if(in_state(RoundState::Input)),
                 )
                     .run_if(in_state(InGameState::Playing)),
             )
@@ -90,8 +90,6 @@ impl Plugin for IngameLogicPlugin {
                     update_health_bar_size,
                     handle_log_events,
                     update_engagement,
-                    handle_combat,
-                    despawn_dead_units,
                 )
                     .run_if(in_state(InGameState::Playing)),
             )

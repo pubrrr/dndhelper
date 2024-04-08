@@ -85,6 +85,7 @@ fn quickstart(
                 attack: manf_assets.stats.attack,
                 defense: manf_assets.stats.defense,
                 range: manf_assets.stats.range,
+                passive_combat_abilities: vec![],
             })
             .insert(HexComponent(Hex::new(4, i as i32 - 4)));
 
@@ -108,6 +109,7 @@ fn quickstart(
                 attack: tree_assets.stats.attack,
                 defense: tree_assets.stats.defense,
                 range: tree_assets.stats.range,
+                passive_combat_abilities: vec![],
             })
             .insert(HexComponent(Hex::new(-4, i as i32)));
     }

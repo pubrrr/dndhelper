@@ -341,6 +341,7 @@ mod tests {
                             attack: 1,
                             defense: 1,
                             range: 1,
+                            passive_combat_abilities: vec![],
                         },
                         hex,
                     }
@@ -377,6 +378,7 @@ mod tests {
                             attack: 1,
                             defense: 1,
                             range: 1,
+                            passive_combat_abilities: vec![],
                         },
                         hex,
                     }

@@ -5,4 +5,5 @@
     attack: 1,
     defense: 11,
     range: 3,
+    passive_combat_abilities: [],
 )

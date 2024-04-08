@@ -4,4 +4,5 @@
     max_health_points: 4,
     attack: 1,
     defense: 11,
+    passive_combat_abilities: [],
 )

@@ -184,6 +184,7 @@ mod tests {
                             attack_action_point_cost: 0,
                             max_attacks_per_round: 0,
                             range: 0,
+                            passive_combat_abilities: vec![],
                         },
                     ),
                     (
@@ -197,6 +198,7 @@ mod tests {
                             attack_action_point_cost: 0,
                             max_attacks_per_round: 0,
                             range: 0,
+                            passive_combat_abilities: vec![],
                         },
                     ),
                 ]),
