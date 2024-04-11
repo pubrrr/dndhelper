@@ -1,3 +1,4 @@
+pub mod abilities;
 pub mod asset_loading;
 pub mod ingame;
 pub mod menu;

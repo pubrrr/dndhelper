@@ -26,7 +26,7 @@ use crate::game::states::round_state::{round_end_system, ActiveTeam, RoundState}
 pub mod action_points;
 pub mod combat;
 mod egui;
-mod game_log;
+pub mod game_log;
 mod health_bar;
 pub mod hex;
 pub mod hovered_hex;

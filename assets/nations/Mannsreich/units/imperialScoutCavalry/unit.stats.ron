@@ -1,0 +1,8 @@
+(
+    name: "Imperial Scout Cavalry",
+    max_action_points: 6,
+    max_health_points: 4,
+    attack: 1,
+    defense: 10,
+    passive_combat_abilities: [HitAndRun],
+)

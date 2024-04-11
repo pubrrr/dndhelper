@@ -1,3 +1,4 @@
+use crate::game::abilities::passive_combat_abilities::PassiveCombatAbility;
 use anyhow::Error;
 use bevy::prelude::{Asset, AssetServer, Handle, Image, Resource, States, UntypedHandle, World};
 use bevy::reflect::TypePath;
@@ -5,8 +6,6 @@ use bevy::utils::HashMap;
 use bevy_asset_loader::prelude::{
     AssetCollection, DynamicAsset, DynamicAssetType, StandardDynamicAsset,
 };
-
-use crate::game::ingame::combat::PassiveCombatAbility;
 
 #[derive(AssetCollection, Resource, Debug, Clone)]
 pub struct NationAssetCollection {

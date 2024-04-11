@@ -1,12 +1,11 @@
 use bevy::app::PostUpdate;
-use bevy::ecs::system::SystemId;
 use bevy::prelude::{
     debug, in_state, info, not, App, Changed, Commands, Component, Condition, DespawnRecursiveExt,
-    Entity, Event, EventReader, EventWriter, FromWorld, IntoSystemConfigs, NextState, Plugin,
-    Query, Res, ResMut, Resource, Update, World,
+    Entity, Event, EventReader, EventWriter, IntoSystemConfigs, NextState, Plugin, Query, Res,
+    ResMut, Resource, Update,
 };
-use bevy::utils::HashMap;
 
+use crate::game::abilities::passive_combat_abilities::RegisteredPassiveCombatAbility;
 use crate::game::ingame::game_log::LogEvent;
 use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::unit_status::UnitStatus;
@@ -68,14 +67,6 @@ pub struct CombatConfig {
     pub passive_combat_abilities: Vec<RegisteredPassiveCombatAbility>,
 }
 
-#[derive(Debug)]
-pub struct RegisteredPassiveCombatAbility {
-    ability: PassiveCombatAbility,
-    system_id: SystemId,
-    combat_phase: CombatPhase,
-    combat_trigger: CombatTrigger,
-}
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum CombatPhase {
     PreCombat,
@@ -86,64 +77,6 @@ pub enum CombatPhase {
 pub enum CombatTrigger {
     OnAttack,
     OnDefense,
-}
-
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Hash, PartialEq, Eq)]
-pub enum PassiveCombatAbility {
-    ArmorBreak,
-}
-
-pub struct PassiveCombatAbilitySystemIds(HashMap<PassiveCombatAbility, SystemId>);
-
-impl FromWorld for PassiveCombatAbilitySystemIds {
-    fn from_world(world: &mut World) -> Self {
-        let mut system_ids = HashMap::default();
-
-        system_ids.insert(
-            PassiveCombatAbility::ArmorBreak,
-            world.register_system(armor_break_system),
-        );
-
-        PassiveCombatAbilitySystemIds(system_ids)
-    }
-}
-
-impl PassiveCombatAbilitySystemIds {
-    pub fn get_registered_ability(
-        &self,
-        ability: PassiveCombatAbility,
-    ) -> RegisteredPassiveCombatAbility {
-        let system_id = self.0[&ability];
-
-        let (combat_phase, combat_trigger) = match ability {
-            PassiveCombatAbility::ArmorBreak => (CombatPhase::PostCombat, CombatTrigger::OnAttack),
-        };
-
-        RegisteredPassiveCombatAbility {
-            ability,
-            system_id,
-            combat_phase,
-            combat_trigger,
-        }
-    }
-}
-
-fn armor_break_system(
-    mut units: Query<(&mut CombatConfig, &UnitMarker)>,
-    combat_resource: Res<CombatResource>,
-    mut log_event: EventWriter<LogEvent>,
-) {
-    if combat_resource.combat_result == CombatResult::Miss {
-        if let Ok((mut combat_config, unit_marker)) = units.get_mut(combat_resource.defender) {
-            log_event.send(LogEvent {
-                message: format!(
-                    "{} has lost 1 defense point due to armor break",
-                    unit_marker.0
-                ),
-            });
-            combat_config.defense -= 1;
-        }
-    }
 }
 
 #[derive(Event, Debug, Clone)]
@@ -184,7 +117,6 @@ fn handle_combat_event(
 fn handle_pre_combat(
     mut commands: Commands,
     units: Query<(&CombatConfig, &UnitMarker)>,
-    mut log_event: EventWriter<LogEvent>,
     combat_resource: Res<CombatResource>,
     mut round_state: ResMut<NextState<RoundState>>,
 ) {
@@ -195,7 +127,6 @@ fn handle_pre_combat(
             &mut commands,
             defender_config,
             unit_marker,
-            &mut log_event,
             CombatPhase::PreCombat,
             CombatTrigger::OnDefense,
         );
@@ -206,7 +137,6 @@ fn handle_pre_combat(
             &mut commands,
             attacker_config,
             unit_marker,
-            &mut log_event,
             CombatPhase::PreCombat,
             CombatTrigger::OnAttack,
         );
@@ -219,7 +149,6 @@ fn filter_and_run_abilities(
     commands: &mut Commands,
     combat_config: &CombatConfig,
     unit_marker: &UnitMarker,
-    log_event: &mut EventWriter<LogEvent>,
     combat_phase: CombatPhase,
     combat_trigger: CombatTrigger,
 ) {
@@ -231,10 +160,7 @@ fn filter_and_run_abilities(
         .filter(|ability| ability.combat_phase == combat_phase)
         .filter(|ability| ability.combat_trigger == combat_trigger)
         .for_each(|ability| {
-            let ability_type = &ability.ability;
-            log_event.send(LogEvent {
-                message: format!("{unit_name} trying {ability_type:?}",),
-            });
+            debug!("{unit_name} trying {:?}", ability.ability);
             commands.run_system(ability.system_id);
         });
 }
@@ -292,7 +218,6 @@ fn handle_combat(
 fn handle_post_combat(
     mut commands: Commands,
     units: Query<(&CombatConfig, &UnitMarker)>,
-    mut log_event: EventWriter<LogEvent>,
     combat_resource: Res<CombatResource>,
     mut round_state: ResMut<NextState<RoundState>>,
 ) {
@@ -303,7 +228,6 @@ fn handle_post_combat(
             &mut commands,
             defender_config,
             unit_marker,
-            &mut log_event,
             CombatPhase::PostCombat,
             CombatTrigger::OnDefense,
         );
@@ -314,7 +238,6 @@ fn handle_post_combat(
             &mut commands,
             attacker_config,
             unit_marker,
-            &mut log_event,
             CombatPhase::PostCombat,
             CombatTrigger::OnAttack,
         );

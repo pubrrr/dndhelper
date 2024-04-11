@@ -1,3 +1,4 @@
+use crate::game::abilities::passive_combat_abilities::PassiveCombatAbilitySystemIds;
 use bevy::app::App;
 #[cfg(not(test))]
 use bevy::prelude::PreUpdate;
@@ -11,7 +12,7 @@ use hexx::Hex;
 use crate::game::asset_loading::nation_asset_resource::NationAssetsResource;
 use crate::game::asset_loading::nation_assets::UnitKey;
 use crate::game::ingame::action_points::ActionPoints;
-use crate::game::ingame::combat::{CombatConfig, HealthPoints, PassiveCombatAbilitySystemIds};
+use crate::game::ingame::combat::{CombatConfig, HealthPoints};
 use crate::game::ingame::hex::{setup_hex_grid, HexComponent, HexMarker};
 #[cfg(not(test))]
 use crate::game::ingame::hovered_hex::update_hovered_hex;

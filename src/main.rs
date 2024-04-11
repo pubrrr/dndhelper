@@ -21,7 +21,7 @@ fn main() {
             DefaultPlugins
                 .set(WindowPlugin {
                     primary_window: Some(bevy::window::Window {
-                        resolution: (1200., 600.).into(),
+                        resolution: (1600., 1200.).into(),
                         ..default()
                     }),
                     ..default()

@@ -16,6 +16,7 @@ pub fn write_nations_assets() -> ron::Result<()> {
         PrettyConfig::default(),
     );
     println!("Done writing dynamic nations assets file: {result:?}");
+    println!("{dynamic_nation_assets:?}");
     result
 }
 
