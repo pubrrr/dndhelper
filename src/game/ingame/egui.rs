@@ -1,8 +1,12 @@
-use bevy::prelude::{warn, Children, NextState, Query, Res, ResMut};
+use bevy::ecs::system::SystemId;
+use bevy::prelude::{
+    warn, Children, Commands, Entity, Event, EventReader, EventWriter, FromWorld, In, Local,
+    NextState, Query, Res, ResMut, With, World,
+};
 use bevy_egui::egui::{Ui, Window};
 use bevy_egui::EguiContexts;
 
-use crate::game::abilities::active_abilities::ActiveAbility;
+use crate::game::abilities::active_abilities::{ActivatedAbilityMarker, ActiveAbility};
 use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::combat::{CombatConfig, HealthPoints};
 use crate::game::ingame::hex::HexComponent;
@@ -28,15 +32,21 @@ type UnitQuery<'world, 'state, 'a> = Query<
     ),
 >;
 
+#[derive(Event, Debug, Clone)]
+pub enum UiEvent {
+    EndRound,
+    ActivateAbility(Entity),
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn ui_system(
     mut contexts: EguiContexts,
     active_team: Res<ActiveTeam>,
-    mut round_state: ResMut<NextState<RoundState>>,
+    mut ui_event: EventWriter<UiEvent>,
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
     units: UnitQuery,
-    active_abilities: Query<&ActiveAbility>,
+    active_abilities: Query<(Entity, &ActiveAbility)>,
     hovered_hex: Res<HoveredHex>,
     terrain_hexes: Query<(&Terrain, &HexComponent)>,
 ) {
@@ -46,10 +56,12 @@ pub(super) fn ui_system(
         ui.separator();
 
         display_selected_unit(
+            active_team,
             selected_unit_resource,
             hovered_unit_resource,
             units,
             active_abilities,
+            &mut ui_event,
             ui,
         );
 
@@ -60,16 +72,18 @@ pub(super) fn ui_system(
         ui.separator();
 
         if ui.button("End Round").clicked() {
-            round_state.set(RoundState::RoundEnd);
+            ui_event.send(UiEvent::EndRound);
         };
     });
 }
 
 fn display_selected_unit(
+    active_team: Res<ActiveTeam>,
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
     units: UnitQuery,
-    active_abilities: Query<&ActiveAbility>,
+    active_abilities: Query<(Entity, &ActiveAbility)>,
+    ui_event: &mut EventWriter<UiEvent>,
     ui: &mut Ui,
 ) {
     ui.heading("Unit:");
@@ -113,9 +127,16 @@ fn display_selected_unit(
     children
         .into_iter()
         .filter_map(|child| active_abilities.get(*child).ok())
-        .for_each(|active_ability| {
-            if ui.button(active_ability.get_display_name()).clicked() {
-                warn!("Ability {} clicked", active_ability.get_display_name());
+        .for_each(|(ability_entity, active_ability)| {
+            let belongs_to_active_team = &(*active_team).0 == team;
+            let is_enabled = belongs_to_active_team;
+
+            let ability_button = ui.add_enabled(
+                is_enabled,
+                bevy_egui::egui::Button::new(active_ability.get_display_name()),
+            );
+            if ability_button.clicked() {
+                ui_event.send(UiEvent::ActivateAbility(ability_entity));
             }
         });
 }
@@ -146,4 +167,49 @@ fn display_terrain(
     ));
     ui.label(&terrain.name);
     ui.label(format!("Movement cost: {}", terrain.movement_cost));
+}
+
+pub(super) struct ActivateAbilityCallback(SystemId<Entity>);
+
+impl FromWorld for ActivateAbilityCallback {
+    fn from_world(world: &mut World) -> Self {
+        let system_id = world.register_system(handle_activate_ability_event);
+
+        Self(system_id)
+    }
+}
+
+pub(super) fn handle_ui_event(
+    mut events: EventReader<UiEvent>,
+    mut commands: Commands,
+    mut round_state: ResMut<NextState<RoundState>>,
+    activate_ability_callback: Local<ActivateAbilityCallback>,
+) {
+    for event in events.read() {
+        match event {
+            UiEvent::EndRound => round_state.set(RoundState::RoundEnd),
+            UiEvent::ActivateAbility(ability_entity) => {
+                commands.run_system_with_input(activate_ability_callback.0, *ability_entity)
+            }
+        }
+    }
+}
+
+fn handle_activate_ability_event(
+    ability_entity: In<Entity>,
+    mut commands: Commands,
+    active_abilities: Query<Entity, With<ActivatedAbilityMarker>>,
+    mut round_state: ResMut<NextState<RoundState>>,
+) {
+    let Some(mut entity_commands) = commands.get_entity(*ability_entity) else {
+        warn!("Could not find entity for ability {:?}", *ability_entity);
+        return;
+    };
+    entity_commands.insert(ActivatedAbilityMarker);
+
+    for entity in active_abilities.iter() {
+        commands.entity(entity).remove::<ActivatedAbilityMarker>();
+    }
+
+    round_state.set(RoundState::ActivateAbility);
 }

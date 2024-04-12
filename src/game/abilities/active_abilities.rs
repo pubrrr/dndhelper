@@ -2,6 +2,9 @@ use bevy::prelude::{Component, FromWorld, World};
 use bevy::utils::HashMap;
 use enum_iterator::{all, Sequence};
 
+#[derive(Component, Debug, Clone)]
+pub struct ActivatedAbilityMarker;
+
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Hash, PartialEq, Eq, Sequence)]
 pub enum ActiveAbilityType {
     ThrowJavelin,

@@ -12,6 +12,7 @@ pub enum RoundState {
     Combat,
     PostCombat,
     MovingUnit,
+    ActivateAbility,
     RoundEnd,
 }
 

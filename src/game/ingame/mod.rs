@@ -1,9 +1,12 @@
 use bevy::app::App;
-use bevy::prelude::{in_state, IntoSystemConfigs, OnEnter, Plugin, PostUpdate, PreUpdate, Update};
+use bevy::prelude::{
+    in_state, IntoSystemConfigs, Last, OnEnter, Plugin, PostUpdate, PreUpdate, Update,
+};
 
 use crate::game::ingame::action_points::reset_action_points;
+use crate::game::ingame::active_abilities_systems::handle_activated_active_ability;
 use crate::game::ingame::combat::{CombatEvent, CombatPlugin};
-use crate::game::ingame::egui::ui_system;
+use crate::game::ingame::egui::{handle_ui_event, ui_system, UiEvent};
 use crate::game::ingame::game_log::{display_log_events, handle_log_events, LogEvent, LogRecord};
 use crate::game::ingame::health_bar::{
     add_health_bars, update_health_bar_positions, update_health_bar_size, HealthBarResources,
@@ -24,6 +27,7 @@ use crate::game::states::in_game_state::InGameState;
 use crate::game::states::round_state::{round_end_system, ActiveTeam, RoundState};
 
 pub mod action_points;
+mod active_abilities_systems;
 pub mod combat;
 mod egui;
 pub mod game_log;
@@ -49,6 +53,7 @@ impl Plugin for IngameLogicPlugin {
             .init_state::<RoundState>()
             .add_event::<LogEvent>()
             .add_event::<CombatEvent>()
+            .add_event::<UiEvent>()
             .init_resource::<ActiveTeam>()
             .init_resource::<HoveredHex>()
             .init_resource::<SelectedUnitResource>()
@@ -77,6 +82,7 @@ impl Plugin for IngameLogicPlugin {
                     despawn_old_path,
                     (handle_selected_unit_input, update_hovered_unit)
                         .run_if(in_state(RoundState::Input)),
+                    handle_activated_active_ability.run_if(in_state(RoundState::ActivateAbility)),
                 )
                     .run_if(in_state(InGameState::Playing)),
             )
@@ -93,6 +99,7 @@ impl Plugin for IngameLogicPlugin {
                 )
                     .run_if(in_state(InGameState::Playing)),
             )
+            .add_systems(Last, handle_ui_event.run_if(in_state(InGameState::Playing)))
             .add_systems(
                 OnEnter(RoundState::RoundEnd),
                 (round_end_system, reset_action_points),
