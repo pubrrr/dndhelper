@@ -1,7 +1,8 @@
-use bevy::prelude::{warn, NextState, Query, Res, ResMut};
+use bevy::prelude::{warn, Children, NextState, Query, Res, ResMut};
 use bevy_egui::egui::{Ui, Window};
 use bevy_egui::EguiContexts;
 
+use crate::game::abilities::active_abilities::ActiveAbility;
 use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::combat::{CombatConfig, HealthPoints};
 use crate::game::ingame::hex::HexComponent;
@@ -13,6 +14,20 @@ use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::unit_status::UnitStatus;
 use crate::game::states::round_state::{ActiveTeam, RoundState};
 
+type UnitQuery<'world, 'state, 'a> = Query<
+    'world,
+    'state,
+    (
+        &'a UnitMarker,
+        &'a ActionPoints,
+        &'a HealthPoints,
+        &'a Team,
+        &'a UnitStatus,
+        &'a CombatConfig,
+        &'a Children,
+    ),
+>;
+
 #[allow(clippy::too_many_arguments)]
 pub(super) fn ui_system(
     mut contexts: EguiContexts,
@@ -20,14 +35,8 @@ pub(super) fn ui_system(
     mut round_state: ResMut<NextState<RoundState>>,
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
-    units: Query<(
-        &UnitMarker,
-        &ActionPoints,
-        &HealthPoints,
-        &Team,
-        &UnitStatus,
-        &CombatConfig,
-    )>,
+    units: UnitQuery,
+    active_abilities: Query<&ActiveAbility>,
     hovered_hex: Res<HoveredHex>,
     terrain_hexes: Query<(&Terrain, &HexComponent)>,
 ) {
@@ -36,7 +45,13 @@ pub(super) fn ui_system(
 
         ui.separator();
 
-        display_selected_unit(selected_unit_resource, hovered_unit_resource, units, ui);
+        display_selected_unit(
+            selected_unit_resource,
+            hovered_unit_resource,
+            units,
+            active_abilities,
+            ui,
+        );
 
         ui.separator();
 
@@ -53,14 +68,8 @@ pub(super) fn ui_system(
 fn display_selected_unit(
     selected_unit_resource: Res<SelectedUnitResource>,
     hovered_unit_resource: Res<HoveredUnitResource>,
-    units: Query<(
-        &UnitMarker,
-        &ActionPoints,
-        &HealthPoints,
-        &Team,
-        &UnitStatus,
-        &CombatConfig,
-    )>,
+    units: UnitQuery,
+    active_abilities: Query<&ActiveAbility>,
     ui: &mut Ui,
 ) {
     ui.heading("Unit:");
@@ -74,7 +83,7 @@ fn display_selected_unit(
         return;
     };
 
-    let Ok((unit_marker, action_points, health_points, team, unit_status, combat_config)) =
+    let Ok((unit_marker, action_points, health_points, team, unit_status, combat_config, children)) =
         units.get(selected_unit)
     else {
         ui.label("-");
@@ -100,6 +109,15 @@ fn display_selected_unit(
     ));
     ui.label(format!("Status: {unit_status:#?}"));
     ui.label(format!("Combat Stats: {combat_config:#?}"));
+
+    children
+        .into_iter()
+        .filter_map(|child| active_abilities.get(*child).ok())
+        .for_each(|active_ability| {
+            if ui.button(active_ability.get_display_name()).clicked() {
+                warn!("Ability {} clicked", active_ability.get_display_name());
+            }
+        });
 }
 
 fn display_terrain(

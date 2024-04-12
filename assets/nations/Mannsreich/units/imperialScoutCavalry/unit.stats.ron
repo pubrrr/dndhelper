@@ -5,4 +5,5 @@
     attack: 1,
     defense: 10,
     passive_combat_abilities: [HitAndRun],
+    active_abilities: [ThrowJavelin],
 )

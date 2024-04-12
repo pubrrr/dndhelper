@@ -6,4 +6,5 @@
     defense: 10,
     range: 2,
     passive_combat_abilities: [],
+    active_abilities: [],
 )

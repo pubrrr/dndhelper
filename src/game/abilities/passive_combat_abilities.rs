@@ -55,14 +55,14 @@ pub struct PassiveCombatAbilityRegistry(HashMap<PassiveCombatAbility, SystemId>)
 
 impl FromWorld for PassiveCombatAbilityRegistry {
     fn from_world(world: &mut World) -> Self {
-        let mut system_ids = HashMap::default();
+        let system_ids_map = all::<PassiveCombatAbility>()
+            .map(|ability| {
+                let system_id = ability.register_system(world);
+                (ability, system_id)
+            })
+            .collect();
 
-        for ability in all::<PassiveCombatAbility>() {
-            let system_id = ability.register_system(world);
-            system_ids.insert(ability, system_id);
-        }
-
-        PassiveCombatAbilityRegistry(system_ids)
+        PassiveCombatAbilityRegistry(system_ids_map)
     }
 }
 
