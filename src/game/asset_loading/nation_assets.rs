@@ -1,3 +1,4 @@
+use crate::game::abilities::active_abilities::ActiveAbilityType;
 use crate::game::abilities::passive_combat_abilities::PassiveCombatAbility;
 use anyhow::Error;
 use bevy::prelude::{Asset, AssetServer, Handle, Image, Resource, States, UntypedHandle, World};
@@ -105,6 +106,7 @@ pub struct UnitStats {
     #[serde(default = "default_range")]
     pub range: u32,
     pub passive_combat_abilities: Vec<PassiveCombatAbility>,
+    pub active_abilities: Vec<ActiveAbilityType>,
 }
 
 fn default_attack_action_point_cost() -> usize {

@@ -1,11 +1,12 @@
+use crate::game::abilities::active_abilities::ActiveAbilityRegistry;
 use crate::game::abilities::passive_combat_abilities::PassiveCombatAbilityRegistry;
 use bevy::app::App;
 #[cfg(not(test))]
 use bevy::prelude::PreUpdate;
 use bevy::prelude::{
-    debug, in_state, ButtonInput, Commands, Event, EventReader, EventWriter, IntoSystemConfigs,
-    Local, MouseButton, NextState, OnEnter, OnExit, Plugin, PostUpdate, Query, Res, ResMut,
-    Resource, Transform, Update, Vec3, With,
+    debug, in_state, BuildChildren, ButtonInput, Commands, Event, EventReader, EventWriter,
+    IntoSystemConfigs, Local, MouseButton, NextState, OnEnter, OnExit, Plugin, PostUpdate, Query,
+    Res, ResMut, Resource, Transform, Update, Vec3, With,
 };
 use hexx::Hex;
 
@@ -221,6 +222,7 @@ fn handle_deploy_unit_event(
     nation_assets_resource: Res<NationAssetsResource>,
     mut deploy_unit_events: EventReader<DeployUnitEvent>,
     passive_combat_ability_registry: Local<PassiveCombatAbilityRegistry>,
+    active_ability_registry: Local<ActiveAbilityRegistry>,
 ) {
     for event in deploy_unit_events.read() {
         let unit_assets = nation_assets_resource.get_unit_assets(&event.unit);
@@ -251,7 +253,15 @@ fn handle_deploy_unit_event(
         }
         .into();
 
-        let entity = commands.spawn(unit_bundle).id();
+        let entity = commands
+            .spawn(unit_bundle)
+            .with_children(|parent| {
+                for active_ability_type in &unit_assets.stats.active_abilities {
+                    parent
+                        .spawn(active_ability_registry.get_registered_ability(active_ability_type));
+                }
+            })
+            .id();
 
         debug!("Deployed unit {entity:?} for event: {event:?}");
     }

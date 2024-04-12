@@ -5,4 +5,5 @@
     attack: 1,
     defense: 11,
     passive_combat_abilities: [],
+    active_abilities: [],
 )
