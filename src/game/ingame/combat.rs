@@ -5,7 +5,9 @@ use bevy::prelude::{
     ResMut, Resource, Update,
 };
 
-use crate::game::abilities::passive_combat_abilities::RegisteredPassiveCombatAbility;
+use crate::game::abilities::passive_combat_abilities::{
+    AbilityTrigger, CombatPhase, RegisteredPassiveCombatAbility,
+};
 use crate::game::ingame::game_log::LogEvent;
 use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::unit_status::UnitStatus;
@@ -67,18 +69,6 @@ pub struct CombatConfig {
     pub passive_combat_abilities: Vec<RegisteredPassiveCombatAbility>,
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum CombatPhase {
-    PreCombat,
-    PostCombat,
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum CombatTrigger {
-    OnAttack,
-    OnDefense,
-}
-
 #[derive(Event, Debug, Clone)]
 pub struct CombatEvent {
     pub attacker: Entity,
@@ -127,8 +117,7 @@ fn handle_pre_combat(
             &mut commands,
             defender_config,
             unit_marker,
-            CombatPhase::PreCombat,
-            CombatTrigger::OnDefense,
+            AbilityTrigger::OnDefense(CombatPhase::PreCombat),
         );
     }
 
@@ -137,8 +126,7 @@ fn handle_pre_combat(
             &mut commands,
             attacker_config,
             unit_marker,
-            CombatPhase::PreCombat,
-            CombatTrigger::OnAttack,
+            AbilityTrigger::OnAttack(CombatPhase::PreCombat),
         );
     }
 
@@ -149,16 +137,14 @@ fn filter_and_run_abilities(
     commands: &mut Commands,
     combat_config: &CombatConfig,
     unit_marker: &UnitMarker,
-    combat_phase: CombatPhase,
-    combat_trigger: CombatTrigger,
+    ability_trigger: AbilityTrigger,
 ) {
     let unit_name = &unit_marker.0;
 
     combat_config
         .passive_combat_abilities
         .iter()
-        .filter(|ability| ability.combat_phase == combat_phase)
-        .filter(|ability| ability.combat_trigger == combat_trigger)
+        .filter(|ability| ability.ability_trigger == ability_trigger)
         .for_each(|ability| {
             debug!("{unit_name} trying {:?}", ability.ability);
             commands.run_system(ability.system_id);
@@ -228,8 +214,7 @@ fn handle_post_combat(
             &mut commands,
             defender_config,
             unit_marker,
-            CombatPhase::PostCombat,
-            CombatTrigger::OnDefense,
+            AbilityTrigger::OnDefense(CombatPhase::PostCombat),
         );
     }
 
@@ -238,8 +223,7 @@ fn handle_post_combat(
             &mut commands,
             attacker_config,
             unit_marker,
-            CombatPhase::PostCombat,
-            CombatTrigger::OnAttack,
+            AbilityTrigger::OnAttack(CombatPhase::PostCombat),
         );
     }
 

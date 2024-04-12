@@ -1,4 +1,4 @@
-use crate::game::abilities::passive_combat_abilities::PassiveCombatAbilitySystemIds;
+use crate::game::abilities::passive_combat_abilities::PassiveCombatAbilityRegistry;
 use bevy::app::App;
 #[cfg(not(test))]
 use bevy::prelude::PreUpdate;
@@ -220,7 +220,7 @@ fn handle_deploy_unit_event(
     mut commands: Commands,
     nation_assets_resource: Res<NationAssetsResource>,
     mut deploy_unit_events: EventReader<DeployUnitEvent>,
-    passive_combat_ability_system_ids: Local<PassiveCombatAbilitySystemIds>,
+    passive_combat_ability_registry: Local<PassiveCombatAbilityRegistry>,
 ) {
     for event in deploy_unit_events.read() {
         let unit_assets = nation_assets_resource.get_unit_assets(&event.unit);
@@ -244,9 +244,7 @@ fn handle_deploy_unit_event(
                     .stats
                     .passive_combat_abilities
                     .into_iter()
-                    .map(|ability| {
-                        passive_combat_ability_system_ids.get_registered_ability(ability)
-                    })
+                    .map(|ability| passive_combat_ability_registry.get_registered_ability(ability))
                     .collect(),
             },
             hex: event.hex,

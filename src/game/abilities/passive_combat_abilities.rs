@@ -5,9 +5,7 @@ use enum_iterator::{all, Sequence};
 
 use game_log::LogEvent;
 
-use crate::game::ingame::combat::{
-    CombatConfig, CombatPhase, CombatResource, CombatResult, CombatTrigger,
-};
+use crate::game::ingame::combat::{CombatConfig, CombatResource, CombatResult};
 use crate::game::ingame::game_log;
 use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::unit_status::UnitStatus;
@@ -16,8 +14,7 @@ use crate::game::ingame::unit_status::UnitStatus;
 pub struct RegisteredPassiveCombatAbility {
     pub ability: PassiveCombatAbility,
     pub system_id: SystemId,
-    pub combat_phase: CombatPhase,
-    pub combat_trigger: CombatTrigger,
+    pub ability_trigger: AbilityTrigger,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, Hash, PartialEq, Eq, Sequence)]
@@ -26,41 +23,62 @@ pub enum PassiveCombatAbility {
     HitAndRun,
 }
 
-pub struct PassiveCombatAbilitySystemIds(HashMap<PassiveCombatAbility, SystemId>);
+impl PassiveCombatAbility {
+    pub fn register_system(&self, world: &mut World) -> SystemId {
+        match self {
+            PassiveCombatAbility::ArmorBreak => world.register_system(armor_break_action),
+            PassiveCombatAbility::HitAndRun => world.register_system(hit_and_run_action),
+        }
+    }
 
-impl FromWorld for PassiveCombatAbilitySystemIds {
+    pub fn get_trigger(&self) -> AbilityTrigger {
+        match self {
+            PassiveCombatAbility::ArmorBreak => AbilityTrigger::OnAttack(CombatPhase::PostCombat),
+            PassiveCombatAbility::HitAndRun => AbilityTrigger::OnAttack(CombatPhase::PostCombat),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub enum AbilityTrigger {
+    OnAttack(CombatPhase),
+    OnDefense(CombatPhase),
+}
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub enum CombatPhase {
+    PreCombat,
+    PostCombat,
+}
+
+pub struct PassiveCombatAbilityRegistry(HashMap<PassiveCombatAbility, SystemId>);
+
+impl FromWorld for PassiveCombatAbilityRegistry {
     fn from_world(world: &mut World) -> Self {
         let mut system_ids = HashMap::default();
 
         for ability in all::<PassiveCombatAbility>() {
-            let system_id = match &ability {
-                PassiveCombatAbility::ArmorBreak => world.register_system(armor_break_action),
-                PassiveCombatAbility::HitAndRun => world.register_system(hit_and_run_action),
-            };
+            let system_id = ability.register_system(world);
             system_ids.insert(ability, system_id);
         }
 
-        PassiveCombatAbilitySystemIds(system_ids)
+        PassiveCombatAbilityRegistry(system_ids)
     }
 }
 
-impl PassiveCombatAbilitySystemIds {
+impl PassiveCombatAbilityRegistry {
     pub fn get_registered_ability(
         &self,
         ability: PassiveCombatAbility,
     ) -> RegisteredPassiveCombatAbility {
         let system_id = self.0[&ability];
 
-        let (combat_phase, combat_trigger) = match ability {
-            PassiveCombatAbility::ArmorBreak => (CombatPhase::PostCombat, CombatTrigger::OnAttack),
-            PassiveCombatAbility::HitAndRun => (CombatPhase::PostCombat, CombatTrigger::OnAttack),
-        };
+        let ability_trigger = ability.get_trigger();
 
         RegisteredPassiveCombatAbility {
             ability,
             system_id,
-            combat_phase,
-            combat_trigger,
+            ability_trigger,
         }
     }
 }
