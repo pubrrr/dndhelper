@@ -200,24 +200,23 @@ pub(super) fn update_hex_overlay(
     hex_resources: Res<HexResources>,
     selected_unit_resource: Res<SelectedUnitResource>,
 ) {
-    if let Some(reachable_hexes) = &selected_unit_resource.reachable_hexes {
-        for (entity, hex, color_material) in &hex_overlays {
-            let is_reachable = reachable_hexes.contains(&hex.0);
-            if color_material.is_some() && is_reachable {
+    let Some(reachable_hexes) = &selected_unit_resource.reachable_hexes else {
+        for (entity, _, color_material) in &hex_overlays {
+            if color_material.is_some() {
                 commands.entity(entity).remove::<Handle<ColorMaterial>>();
-            } else if color_material.is_none() && !is_reachable {
-                commands
-                    .entity(entity)
-                    .insert(hex_resources.not_reachable_overlay_color.clone());
             }
         }
-
         return;
-    }
+    };
 
-    for (entity, _, color_material) in &hex_overlays {
-        if color_material.is_some() {
+    for (entity, hex, color_material) in &hex_overlays {
+        let is_reachable = reachable_hexes.contains(&hex.0);
+        if color_material.is_some() && is_reachable {
             commands.entity(entity).remove::<Handle<ColorMaterial>>();
+        } else if color_material.is_none() && !is_reachable {
+            commands
+                .entity(entity)
+                .insert(hex_resources.not_reachable_overlay_color.clone());
         }
     }
 }
