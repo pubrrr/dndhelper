@@ -2,7 +2,7 @@ use bevy::input::ButtonInput;
 use bevy::prelude::{debug, warn, Entity, EventWriter, MouseButton, Query, Res, ResMut};
 
 use crate::game::ingame::action_points::ActionPoints;
-use crate::game::ingame::combat::{CombatConfig, CombatEvent};
+use crate::game::ingame::combat::{AttackOrDefault, CombatConfig, CombatEvent};
 use crate::game::ingame::hex::HexComponent;
 use crate::game::ingame::hovered_hex::{HoveredHex, HoveredUnitResource};
 use crate::game::ingame::move_unit::MoveUnitEvent;
@@ -64,6 +64,7 @@ pub(super) fn handle_selected_unit_input(
             combat_event.send(CombatEvent {
                 attacker: selected_unit,
                 defender: hovered_entity,
+                attack: AttackOrDefault::Attack(combat_config.get_default_attack()),
             });
 
             let (_, _, _, mut action_points, _) = units.get_mut(selected_unit).unwrap();

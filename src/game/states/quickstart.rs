@@ -82,7 +82,7 @@ fn quickstart(
             ))
             .insert(HealthPoints::new(manf_assets.stats.max_health_points))
             .insert(CombatConfig {
-                attack: manf_assets.stats.attack,
+                damage: manf_assets.stats.damage,
                 defense: manf_assets.stats.defense,
                 range: manf_assets.stats.range,
                 passive_combat_abilities: vec![],
@@ -106,7 +106,7 @@ fn quickstart(
             ))
             .insert(HealthPoints::new(tree_assets.stats.max_health_points))
             .insert(CombatConfig {
-                attack: tree_assets.stats.attack,
+                damage: tree_assets.stats.damage,
                 defense: tree_assets.stats.defense,
                 range: tree_assets.stats.range,
                 passive_combat_abilities: vec![],

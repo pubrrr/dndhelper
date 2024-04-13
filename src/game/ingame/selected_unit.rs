@@ -1,13 +1,15 @@
 use std::collections::HashSet;
 
+use bevy::hierarchy::Parent;
 use bevy::prelude::{
-    debug, ButtonInput, Changed, ColorMaterial, Commands, Component, DetectChanges, Entity, Handle,
-    KeyCode, NextState, Query, Res, ResMut, Resource, State, With, Without,
+    debug, warn, ButtonInput, Changed, ColorMaterial, Commands, Component, DetectChanges, Entity,
+    Handle, KeyCode, NextState, Query, Res, ResMut, Resource, State, With, Without,
 };
 use bevy::utils::HashMap;
 use hexx::algorithms::field_of_movement;
 use hexx::Hex;
 
+use crate::game::abilities::active_abilities::{ActivatedAbilityMarker, ActiveAbility};
 use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::combat::CombatConfig;
 use crate::game::ingame::hex::{HexComponent, HexMarker, HexOverlayMarker, HexResources};
@@ -15,6 +17,7 @@ use crate::game::ingame::team_setup::Team;
 use crate::game::ingame::terrain::{MovementCost, Terrain};
 use crate::game::ingame::unit::{UnitFilter, UnitMarker};
 use crate::game::states::round_state::RoundState;
+use crate::game::util::find_units_within_range::FindUnitsWithinRange;
 
 #[derive(Resource, Default)]
 pub struct SelectedUnitResource {
@@ -121,19 +124,24 @@ pub(super) fn update_selected_unit_hex(
     }
 }
 
+pub type UpdateReachableHexesUnitsQuery<'world, 'state, 'a> = Query<
+    'world,
+    'state,
+    (
+        &'a ActionPoints,
+        &'a HexComponent,
+        &'a Team,
+        &'a ActionPoints,
+        &'a CombatConfig,
+    ),
+    UnitFilter,
+>;
+
 pub(super) fn update_reachable_hexes_cache(
-    units: Query<
-        (
-            &ActionPoints,
-            &HexComponent,
-            &Team,
-            &ActionPoints,
-            &CombatConfig,
-        ),
-        UnitFilter,
-    >,
+    units: UpdateReachableHexesUnitsQuery,
     hexes: Query<(&HexComponent, &Terrain), With<HexMarker>>,
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
+    active_abilities: Query<(&ActiveAbility, &Parent), With<ActivatedAbilityMarker>>,
 ) {
     if !selected_unit_resource.recompute_cache {
         return;
@@ -145,7 +153,12 @@ pub(super) fn update_reachable_hexes_cache(
         return;
     };
 
-    let (cost_map, reachable_hexes) = compute_for_input_state(units, hexes, selected_unit);
+    let (cost_map, reachable_hexes) = if let Ok((ability, parent)) = active_abilities.get_single() {
+        let reachable_hexes = ability.get_reachable_hexes(&units, &hexes, parent);
+        (HashMap::new(), reachable_hexes)
+    } else {
+        compute_for_input_state(&units, &hexes, selected_unit)
+    };
 
     selected_unit_resource.cost_map = cost_map;
     selected_unit_resource.reachable_hexes = reachable_hexes;
@@ -153,17 +166,8 @@ pub(super) fn update_reachable_hexes_cache(
 }
 
 fn compute_for_input_state(
-    units: Query<
-        (
-            &ActionPoints,
-            &HexComponent,
-            &Team,
-            &ActionPoints,
-            &CombatConfig,
-        ),
-        UnitFilter,
-    >,
-    hexes: Query<(&HexComponent, &Terrain), With<HexMarker>>,
+    units: &UpdateReachableHexesUnitsQuery,
+    hexes: &Query<(&HexComponent, &Terrain), With<HexMarker>>,
     selected_unit: Entity,
 ) -> (HashMap<Hex, MovementCost>, Option<HashSet<Hex>>) {
     let Ok((
@@ -174,10 +178,11 @@ fn compute_for_input_state(
         selected_unit_combat_config,
     )) = units.get(selected_unit)
     else {
+        warn!("Units query did not contain selected unit {selected_unit:?}");
         return (HashMap::new(), None);
     };
 
-    let cost_map = hexes
+    let mut cost_map: HashMap<_, _> = hexes
         .iter()
         .map(|(hex_component, terrain)| (hex_component.0, terrain.movement_cost.clone()))
         .collect();
@@ -198,14 +203,11 @@ fn compute_for_input_state(
         });
 
     if selected_unit_action_points.can_still_attack_this_turn() {
-        let attackable_units = units
-            .iter()
-            .filter(|(_, _, team, _, _)| team != &selected_unit_team)
-            .filter(|(_, hex_component, _, _, _)| {
-                selected_unit_hex.0.unsigned_distance_to(hex_component.0)
-                    <= selected_unit_combat_config.range
-            })
-            .map(|(_, hex_component, _, _, _)| hex_component.0);
+        let attack_range = selected_unit_combat_config.range;
+        let attackable_units =
+            units.find_units_within_range(selected_unit_hex.0, attack_range, |team| {
+                team != selected_unit_team
+            });
 
         reachable_hexes.extend(attackable_units);
     }

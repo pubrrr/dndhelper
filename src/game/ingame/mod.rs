@@ -1,10 +1,12 @@
 use bevy::app::App;
 use bevy::prelude::{
-    in_state, IntoSystemConfigs, Last, OnEnter, Plugin, PostUpdate, PreUpdate, Update,
+    in_state, IntoSystemConfigs, Last, OnEnter, OnExit, Plugin, PostUpdate, PreUpdate, Update,
 };
 
 use crate::game::ingame::action_points::reset_action_points;
-use crate::game::ingame::active_abilities_systems::handle_activated_active_ability;
+use crate::game::ingame::active_abilities_systems::{
+    handle_activated_active_ability, unset_activated_ability,
+};
 use crate::game::ingame::combat::{CombatEvent, CombatPlugin};
 use crate::game::ingame::egui::{handle_ui_event, ui_system, UiEvent};
 use crate::game::ingame::game_log::{display_log_events, handle_log_events, LogEvent, LogRecord};
@@ -100,6 +102,7 @@ impl Plugin for IngameLogicPlugin {
                     .run_if(in_state(InGameState::Playing)),
             )
             .add_systems(Last, handle_ui_event.run_if(in_state(InGameState::Playing)))
+            .add_systems(OnExit(RoundState::ActivateAbility), unset_activated_ability)
             .add_systems(
                 OnEnter(RoundState::RoundEnd),
                 (round_end_system, reset_action_points),

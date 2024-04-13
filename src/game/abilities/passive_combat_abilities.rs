@@ -10,7 +10,7 @@ use crate::game::ingame::game_log;
 use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::unit_status::UnitStatus;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RegisteredPassiveCombatAbility {
     pub ability: PassiveCombatAbility,
     pub system_id: SystemId,
