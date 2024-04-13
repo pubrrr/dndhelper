@@ -1,4 +1,5 @@
 use bevy::ecs::system::SystemId;
+use bevy::log::debug;
 use bevy::prelude::{
     warn, Children, Commands, Entity, Event, EventReader, EventWriter, FromWorld, In, Local,
     NextState, Query, Res, ResMut, With, World,
@@ -200,16 +201,19 @@ fn handle_activate_ability_event(
     mut commands: Commands,
     active_abilities: Query<Entity, With<ActivatedAbilityMarker>>,
     mut round_state: ResMut<NextState<RoundState>>,
+    mut selected_unit_resource: ResMut<SelectedUnitResource>,
 ) {
+    for entity in active_abilities.iter() {
+        commands.entity(entity).remove::<ActivatedAbilityMarker>();
+    }
     let Some(mut entity_commands) = commands.get_entity(*ability_entity) else {
         warn!("Could not find entity for ability {:?}", *ability_entity);
         return;
     };
     entity_commands.insert(ActivatedAbilityMarker);
 
-    for entity in active_abilities.iter() {
-        commands.entity(entity).remove::<ActivatedAbilityMarker>();
-    }
+    debug!("Activated ability (entity {:?})", *ability_entity);
 
     round_state.set(RoundState::ActivateAbility);
+    selected_unit_resource.needs_reachable_hexes_recomputation();
 }

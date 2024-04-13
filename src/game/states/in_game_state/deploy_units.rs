@@ -239,7 +239,7 @@ fn handle_deploy_unit_event(
             ),
             health_points: HealthPoints::new(unit_assets.stats.max_health_points),
             combat_config: CombatConfig {
-                attack: unit_assets.stats.attack,
+                damage: unit_assets.stats.damage,
                 defense: unit_assets.stats.defense,
                 range: unit_assets.stats.range,
                 passive_combat_abilities: unit_assets

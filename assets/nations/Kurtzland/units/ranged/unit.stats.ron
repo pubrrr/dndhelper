@@ -2,7 +2,7 @@
     name: "RangedDummy",
     max_action_points: 3,
     max_health_points: 4,
-    attack: 1,
+    damage: 1,
     defense: 11,
     range: 3,
     passive_combat_abilities: [],

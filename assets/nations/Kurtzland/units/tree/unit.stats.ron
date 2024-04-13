@@ -2,7 +2,7 @@
     name: "Tree",
     max_action_points: 3,
     max_health_points: 4,
-    attack: 1,
+    damage: 1,
     defense: 11,
     passive_combat_abilities: [],
     active_abilities: [],

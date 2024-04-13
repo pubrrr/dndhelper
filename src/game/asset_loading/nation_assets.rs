@@ -97,7 +97,7 @@ pub struct UnitStats {
     pub name: String,
     pub max_action_points: usize,
     pub max_health_points: usize,
-    pub attack: usize,
+    pub damage: usize,
     pub defense: usize,
     #[serde(default = "default_attack_action_point_cost")]
     pub attack_action_point_cost: usize,

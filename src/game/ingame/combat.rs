@@ -62,22 +62,47 @@ impl HealthPoints {
 #[derive(Component, Debug)]
 pub struct CombatConfig {
     /// damage to health points if defense fails
-    pub attack: usize,
+    pub damage: usize,
     /// Chance to defend in a D20 dice roll
     pub defense: usize,
     pub range: u32,
     pub passive_combat_abilities: Vec<RegisteredPassiveCombatAbility>,
 }
 
+impl CombatConfig {
+    pub fn get_default_attack(&self) -> Attack {
+        Attack {
+            damage: self.damage,
+            range: self.range,
+            passive_combat_abilities: self.passive_combat_abilities.clone(),
+        }
+    }
+}
+
 #[derive(Event, Debug, Clone)]
 pub struct CombatEvent {
     pub attacker: Entity,
+    pub attack: AttackOrDefault,
     pub defender: Entity,
+}
+
+#[derive(Debug, Clone)]
+pub enum AttackOrDefault {
+    Attack(Attack),
+    Default,
+}
+
+#[derive(Debug, Clone)]
+pub struct Attack {
+    pub damage: usize,
+    pub range: u32,
+    pub passive_combat_abilities: Vec<RegisteredPassiveCombatAbility>,
 }
 
 #[derive(Resource, Debug)]
 pub struct CombatResource {
     pub attacker: Entity,
+    pub attack: Attack,
     pub defender: Entity,
     pub combat_result: CombatResult,
 }
@@ -93,11 +118,20 @@ fn handle_combat_event(
     mut round_state: ResMut<NextState<RoundState>>,
     mut commands: Commands,
     mut combat_events: EventReader<CombatEvent>,
+    units: Query<&CombatConfig>,
 ) {
     for combat_event in combat_events.read() {
+        let attack = match &combat_event.attack {
+            AttackOrDefault::Attack(attack) => attack.clone(),
+            AttackOrDefault::Default => match units.get(combat_event.attacker) {
+                Ok(combat_config) => combat_config.get_default_attack(),
+                Err(_) => continue,
+            },
+        };
         round_state.set(RoundState::PreCombat);
         commands.insert_resource(CombatResource {
             attacker: combat_event.attacker,
+            attack,
             defender: combat_event.defender,
             combat_result: CombatResult::None,
         });
@@ -115,16 +149,16 @@ fn handle_pre_combat(
     if let Ok((defender_config, unit_marker)) = units.get(combat_resource.defender) {
         filter_and_run_abilities(
             &mut commands,
-            defender_config,
+            &defender_config.passive_combat_abilities,
             unit_marker,
             AbilityTrigger::OnDefense(CombatPhase::PreCombat),
         );
     }
 
-    if let Ok((attacker_config, unit_marker)) = units.get(combat_resource.attacker) {
+    if let Ok((_, unit_marker)) = units.get(combat_resource.attacker) {
         filter_and_run_abilities(
             &mut commands,
-            attacker_config,
+            &combat_resource.attack.passive_combat_abilities,
             unit_marker,
             AbilityTrigger::OnAttack(CombatPhase::PreCombat),
         );
@@ -135,14 +169,13 @@ fn handle_pre_combat(
 
 fn filter_and_run_abilities(
     commands: &mut Commands,
-    combat_config: &CombatConfig,
+    passive_combat_abilities: &[RegisteredPassiveCombatAbility],
     unit_marker: &UnitMarker,
     ability_trigger: AbilityTrigger,
 ) {
     let unit_name = &unit_marker.0;
 
-    combat_config
-        .passive_combat_abilities
+    passive_combat_abilities
         .iter()
         .filter(|ability| ability.ability_trigger == ability_trigger)
         .for_each(|ability| {
@@ -157,11 +190,11 @@ fn handle_combat(
     mut combat_resource: ResMut<CombatResource>,
     mut round_state: ResMut<NextState<RoundState>>,
 ) {
-    let Ok((attacker_config, _, attacker_unit)) = units.get_mut(combat_resource.attacker) else {
+    let Ok((_, _, attacker_unit)) = units.get_mut(combat_resource.attacker) else {
         return;
     };
 
-    let attack_points = attacker_config.attack;
+    let damage = combat_resource.attack.damage;
     let attacker_name = attacker_unit.0.clone();
 
     let (defender_config, mut defender_health_points, defender_unit) =
@@ -178,15 +211,15 @@ fn handle_combat(
             "Successful combat dice roll: {dice_roll} against {}",
             defender_config.defense
         );
-        defender_health_points.left = if attack_points >= defender_health_points.left {
+        defender_health_points.left = if damage >= defender_health_points.left {
             0
         } else {
-            defender_health_points.left - attack_points
+            defender_health_points.left - damage
         };
 
         log_event.send(LogEvent {
             message: format!(
-                "{attacker_name} caused {attack_points} damage to {defender_name} ({dice_roll}/{defense})",
+                "{attacker_name} caused {damage} damage to {defender_name} ({dice_roll}/{defense})",
             ),
         });
     } else {
@@ -212,16 +245,16 @@ fn handle_post_combat(
     if let Ok((defender_config, unit_marker)) = units.get(combat_resource.defender) {
         filter_and_run_abilities(
             &mut commands,
-            defender_config,
+            &defender_config.passive_combat_abilities,
             unit_marker,
             AbilityTrigger::OnDefense(CombatPhase::PostCombat),
         );
     }
 
-    if let Ok((attacker_config, unit_marker)) = units.get(combat_resource.attacker) {
+    if let Ok((_, unit_marker)) = units.get(combat_resource.attacker) {
         filter_and_run_abilities(
             &mut commands,
-            attacker_config,
+            &combat_resource.attack.passive_combat_abilities,
             unit_marker,
             AbilityTrigger::OnAttack(CombatPhase::PostCombat),
         );

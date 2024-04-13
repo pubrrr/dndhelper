@@ -11,7 +11,7 @@ use bevy::time::TimerMode;
 use hexx::Hex;
 
 use crate::game::ingame::action_points::ActionPoints;
-use crate::game::ingame::combat::CombatEvent;
+use crate::game::ingame::combat::{AttackOrDefault, CombatEvent};
 use crate::game::ingame::hex::{HexComponent, HexMarker};
 use crate::game::ingame::terrain::{MovementCost, Terrain};
 use crate::game::ingame::unit::UnitFilter;
@@ -169,6 +169,7 @@ fn move_unit_system<Time: TimeInterface>(
             combat_event.send(CombatEvent {
                 attacker: *unit_engaged_with,
                 defender: moving_unit.entity,
+                attack: AttackOrDefault::Default,
             });
         }
     }
@@ -338,7 +339,7 @@ mod tests {
                         action_points: ActionPoints::new(MAX_ACTION_POINTS, 1, 1),
                         health_points: HealthPoints::new(5),
                         combat_config: CombatConfig {
-                            attack: 1,
+                            damage: 1,
                             defense: 1,
                             range: 1,
                             passive_combat_abilities: vec![],
@@ -375,7 +376,7 @@ mod tests {
                         action_points: ActionPoints::new(MAX_ACTION_POINTS, 1, 1),
                         health_points: HealthPoints::new(5),
                         combat_config: CombatConfig {
-                            attack: 1,
+                            damage: 1,
                             defense: 1,
                             range: 1,
                             passive_combat_abilities: vec![],

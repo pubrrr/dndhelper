@@ -2,7 +2,7 @@
     name: "Tribal Axeman",
     max_action_points: 4,
     max_health_points: 5,
-    attack: 1,
+    damage: 1,
     defense: 10,
     passive_combat_abilities: [ArmorBreak],
     active_abilities: [],
