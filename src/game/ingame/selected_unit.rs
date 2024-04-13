@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use bevy::prelude::{
     debug, ButtonInput, Changed, ColorMaterial, Commands, Component, DetectChanges, Entity, Handle,
-    KeyCode, Query, Res, ResMut, Resource, With, Without,
+    KeyCode, NextState, Query, Res, ResMut, Resource, State, With, Without,
 };
 use bevy::utils::HashMap;
 use hexx::algorithms::field_of_movement;
@@ -14,6 +14,7 @@ use crate::game::ingame::hex::{HexComponent, HexMarker, HexOverlayMarker, HexRes
 use crate::game::ingame::team_setup::Team;
 use crate::game::ingame::terrain::{MovementCost, Terrain};
 use crate::game::ingame::unit::{UnitFilter, UnitMarker};
+use crate::game::states::round_state::RoundState;
 
 #[derive(Resource, Default)]
 pub struct SelectedUnitResource {
@@ -69,10 +70,15 @@ pub(super) fn check_whether_selected_unit_needs_recomputation(
 
 pub(super) fn reset_selected_unit(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
+    round_state: Res<State<RoundState>>,
+    mut next_round_state: ResMut<NextState<RoundState>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
         selected_unit_resource.set_selected_unit(None);
+        if *round_state == RoundState::ActivateAbility {
+            next_round_state.set(RoundState::Input);
+        }
     }
 }
 
@@ -139,6 +145,27 @@ pub(super) fn update_reachable_hexes_cache(
         return;
     };
 
+    let (cost_map, reachable_hexes) = compute_for_input_state(units, hexes, selected_unit);
+
+    selected_unit_resource.cost_map = cost_map;
+    selected_unit_resource.reachable_hexes = reachable_hexes;
+    selected_unit_resource.recompute_cache = false;
+}
+
+fn compute_for_input_state(
+    units: Query<
+        (
+            &ActionPoints,
+            &HexComponent,
+            &Team,
+            &ActionPoints,
+            &CombatConfig,
+        ),
+        UnitFilter,
+    >,
+    hexes: Query<(&HexComponent, &Terrain), With<HexMarker>>,
+    selected_unit: Entity,
+) -> (HashMap<Hex, MovementCost>, Option<HashSet<Hex>>) {
     let Ok((
         action_points,
         selected_unit_hex,
@@ -147,28 +174,25 @@ pub(super) fn update_reachable_hexes_cache(
         selected_unit_combat_config,
     )) = units.get(selected_unit)
     else {
-        return;
+        return (HashMap::new(), None);
     };
 
-    selected_unit_resource.cost_map = hexes
+    let cost_map = hexes
         .iter()
         .map(|(hex_component, terrain)| (hex_component.0, terrain.movement_cost.clone()))
         .collect();
 
-    selected_unit_resource
-        .cost_map
-        .extend(units.iter().map(|(_, hex_component, _, _, _)| {
-            let cost = match selected_unit_hex.0.unsigned_distance_to(hex_component.0) {
-                0 => MovementCost::Passable(0),
-                _ => MovementCost::Impassable,
-            };
-            (hex_component.0, cost)
-        }));
+    cost_map.extend(units.iter().map(|(_, hex_component, _, _, _)| {
+        let cost = match selected_unit_hex.0.unsigned_distance_to(hex_component.0) {
+            0 => MovementCost::Passable(0),
+            _ => MovementCost::Impassable,
+        };
+        (hex_component.0, cost)
+    }));
 
     let mut reachable_hexes =
         field_of_movement(selected_unit_hex.0, action_points.left as u32, |hex| {
-            selected_unit_resource
-                .cost_map
+            cost_map
                 .get(&hex)
                 .and_then(|movement_cost| movement_cost.get_modified_algorithm_cost())
         });
@@ -185,9 +209,7 @@ pub(super) fn update_reachable_hexes_cache(
 
         reachable_hexes.extend(attackable_units);
     }
-
-    selected_unit_resource.reachable_hexes = Some(reachable_hexes);
-    selected_unit_resource.recompute_cache = false;
+    (cost_map, Some(reachable_hexes))
 }
 
 #[allow(clippy::type_complexity)]
