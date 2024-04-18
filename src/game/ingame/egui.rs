@@ -129,7 +129,7 @@ fn display_selected_unit(
         .into_iter()
         .filter_map(|child| active_abilities.get(*child).ok())
         .for_each(|(ability_entity, active_ability)| {
-            let belongs_to_active_team = &(*active_team).0 == team;
+            let belongs_to_active_team = active_team.0 == team;
             let is_enabled = belongs_to_active_team;
 
             let ability_button = ui.add_enabled(
