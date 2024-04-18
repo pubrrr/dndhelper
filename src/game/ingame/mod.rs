@@ -1,6 +1,7 @@
 use bevy::app::App;
 use bevy::prelude::{
-    in_state, IntoSystemConfigs, Last, OnEnter, OnExit, Plugin, PostUpdate, PreUpdate, Update,
+    in_state, Condition, IntoSystemConfigs, Last, OnEnter, OnExit, Plugin, PostUpdate, PreUpdate,
+    Update,
 };
 
 use crate::game::ingame::action_points::reset_action_points;
@@ -65,7 +66,9 @@ impl Plugin for IngameLogicPlugin {
             .init_resource::<CurrentPath>()
             .add_systems(
                 PreUpdate,
-                update_hovered_hex.run_if(in_state(RoundState::Input)),
+                update_hovered_hex.run_if(
+                    in_state(RoundState::Input).or_else(in_state(RoundState::ActivateAbility)),
+                ),
             )
             .add_systems(Update, menu_ui.run_if(in_state(GameState::Loading)))
             .add_systems(
@@ -82,8 +85,10 @@ impl Plugin for IngameLogicPlugin {
                     reset_selected_unit,
                     compute_current_path,
                     despawn_old_path,
-                    (handle_selected_unit_input, update_hovered_unit)
-                        .run_if(in_state(RoundState::Input)),
+                    handle_selected_unit_input.run_if(in_state(RoundState::Input)),
+                    update_hovered_unit.run_if(
+                        in_state(RoundState::Input).or_else(in_state(RoundState::ActivateAbility)),
+                    ),
                     handle_activated_active_ability.run_if(in_state(RoundState::ActivateAbility)),
                 )
                     .run_if(in_state(InGameState::Playing)),
