@@ -15,10 +15,10 @@ pub fn handle_activated_active_ability(
     buttons: Res<ButtonInput<MouseButton>>,
     hovered_hex: Res<HoveredHex>,
     mut round_state: ResMut<NextState<RoundState>>,
-    active_abilities: Query<(&ActiveAbility, &Parent), With<ActivatedAbilityMarker>>,
+    mut active_abilities: Query<(&mut ActiveAbility, &Parent), With<ActivatedAbilityMarker>>,
     mut commands: Commands,
 ) {
-    let Ok((ability, parent)) = active_abilities.get_single() else {
+    let Ok((mut ability, parent)) = active_abilities.get_single_mut() else {
         round_state.set(RoundState::Input);
         return;
     };
@@ -41,16 +41,20 @@ pub fn handle_activated_active_ability(
         return;
     }
 
-    match ability {
+    match *ability {
         ActiveAbility::ThrowJavelin {
             throw_javelin_system: system_id,
-        } => commands.run_system_with_input(
-            *system_id,
-            ThrowJavelinInput {
-                attacker: **parent,
-                target_hex: hex_cursor_position,
-            },
-        ),
+            ref mut has_been_used,
+        } => {
+            *has_been_used = true;
+            commands.run_system_with_input(
+                system_id,
+                ThrowJavelinInput {
+                    attacker: **parent,
+                    target_hex: hex_cursor_position,
+                },
+            )
+        }
     };
 }
 

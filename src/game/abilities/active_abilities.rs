@@ -28,6 +28,7 @@ impl ActiveAbilityType {
         match self {
             ActiveAbilityType::ThrowJavelin => ActiveAbility::ThrowJavelin {
                 throw_javelin_system: world.register_system(throw_javelin_system),
+                has_been_used: false,
             },
         }
     }
@@ -58,6 +59,7 @@ impl FromWorld for ActiveAbilityRegistry {
 pub enum ActiveAbility {
     ThrowJavelin {
         throw_javelin_system: SystemId<ThrowJavelinInput>,
+        has_been_used: bool,
     },
 }
 
@@ -88,6 +90,12 @@ impl ActiveAbility {
                     }),
                 )
             }
+        }
+    }
+
+    pub fn can_be_used(&self) -> bool {
+        match self {
+            ActiveAbility::ThrowJavelin { has_been_used, .. } => !has_been_used,
         }
     }
 }
