@@ -125,21 +125,28 @@ fn display_selected_unit(
     ui.label(format!("Status: {unit_status:#?}"));
     ui.label(format!("Combat Stats: {combat_config:#?}"));
 
-    children
+    let abilities = children
         .into_iter()
         .filter_map(|child| active_abilities.get(*child).ok())
-        .for_each(|(ability_entity, active_ability)| {
-            let belongs_to_active_team = &active_team.0 == team;
-            let is_enabled = belongs_to_active_team;
+        .collect::<Vec<_>>();
 
-            let ability_button = ui.add_enabled(
-                is_enabled,
-                bevy_egui::egui::Button::new(active_ability.get_display_name()),
-            );
-            if ability_button.clicked() {
-                ui_event.send(UiEvent::ActivateAbility(ability_entity));
-            }
-        });
+    if abilities.is_empty() {
+        return;
+    }
+    ui.separator();
+    ui.label("Abilities:".to_string());
+    for (ability_entity, active_ability) in abilities {
+        let belongs_to_active_team = &active_team.0 == team;
+        let is_enabled = belongs_to_active_team;
+
+        let ability_button = ui.add_enabled(
+            is_enabled,
+            bevy_egui::egui::Button::new(active_ability.get_display_name()),
+        );
+        if ability_button.clicked() {
+            ui_event.send(UiEvent::ActivateAbility(ability_entity));
+        }
+    }
 }
 
 fn display_terrain(
