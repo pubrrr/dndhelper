@@ -7,7 +7,7 @@ pub mod scan_assets;
 mod tests {
     use bevy::ecs::event::ManualEventReader;
     use bevy::log::debug;
-    use bevy::prelude::{App, Event, Events, NextState, State, States};
+    use bevy::prelude::{App, Event, Events, State, States};
 
     pub trait AppWrapper {
         fn app(&self) -> &App;
