@@ -44,9 +44,9 @@ pub fn handle_activated_active_ability(
     match *ability {
         ActiveAbility::ThrowJavelin {
             throw_javelin_system: system_id,
-            ref mut has_been_used,
+            ref mut usages_left,
         } => {
-            *has_been_used = true;
+            *usages_left -= 1;
             commands.run_system_with_input(
                 system_id,
                 ThrowJavelinInput {
