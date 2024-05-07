@@ -37,13 +37,6 @@ mod tests {
         fn get<S: States>(&self) -> &S {
             self.app().world.resource::<State<S>>()
         }
-
-        fn set<S: States>(&mut self, next_state: S) {
-            self.app_mut()
-                .world
-                .resource_mut::<NextState<S>>()
-                .set(next_state);
-        }
     }
 
     #[macro_export]
