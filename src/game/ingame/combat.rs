@@ -8,6 +8,7 @@ use bevy::prelude::{
 use crate::game::abilities::passive_combat_abilities::{
     AbilityTrigger, CombatPhase, RegisteredPassiveCombatAbility,
 };
+use crate::game::ingame::action_points::ActionPoints;
 use crate::game::ingame::game_log::LogEvent;
 use crate::game::ingame::unit::UnitMarker;
 use crate::game::ingame::unit_status::UnitStatus;
@@ -140,13 +141,13 @@ fn handle_combat_event(
 
 fn handle_pre_combat(
     mut commands: Commands,
-    units: Query<(&CombatConfig, &UnitMarker)>,
+    mut units: Query<(&CombatConfig, &UnitMarker, &mut ActionPoints)>,
     combat_resource: Res<CombatResource>,
     mut round_state: ResMut<NextState<RoundState>>,
 ) {
     debug!("Handling pre combat");
 
-    if let Ok((defender_config, unit_marker)) = units.get(combat_resource.defender) {
+    if let Ok((defender_config, unit_marker, _)) = units.get(combat_resource.defender) {
         filter_and_run_abilities(
             &mut commands,
             &defender_config.passive_combat_abilities,
@@ -155,7 +156,9 @@ fn handle_pre_combat(
         );
     }
 
-    if let Ok((_, unit_marker)) = units.get(combat_resource.attacker) {
+    if let Ok((_, unit_marker, mut action_points)) = units.get_mut(combat_resource.attacker) {
+        action_points.left -= action_points.attack_action_point_cost();
+        action_points.attacks_this_round += 1;
         filter_and_run_abilities(
             &mut commands,
             &combat_resource.attack.passive_combat_abilities,

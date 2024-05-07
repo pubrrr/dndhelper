@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use crate::game::ingame::action_points::ActionPoints;
 use bevy::ecs::system::SystemId;
 use bevy::log::warn;
 use bevy::prelude::{Component, Entity, EventWriter, FromWorld, In, Parent, Query, With, World};
@@ -93,9 +94,11 @@ impl ActiveAbility {
         }
     }
 
-    pub fn can_be_used(&self) -> bool {
+    pub fn can_be_used(&self, action_points: &ActionPoints) -> bool {
         match self {
-            ActiveAbility::ThrowJavelin { has_been_used, .. } => !has_been_used,
+            ActiveAbility::ThrowJavelin { has_been_used, .. } => {
+                !has_been_used && action_points.can_still_attack_this_turn()
+            }
         }
     }
 }

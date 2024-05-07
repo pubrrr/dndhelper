@@ -16,14 +16,8 @@ use crate::game::states::round_state::ActiveTeam;
 pub(super) fn handle_selected_unit_input(
     mut selected_unit_resource: ResMut<SelectedUnitResource>,
     buttons: Res<ButtonInput<MouseButton>>,
-    #[allow(clippy::type_complexity)] mut units: Query<
-        (
-            Entity,
-            &HexComponent,
-            &Team,
-            &mut ActionPoints,
-            &CombatConfig,
-        ),
+    #[allow(clippy::type_complexity)] units: Query<
+        (Entity, &HexComponent, &Team, &ActionPoints, &CombatConfig),
         UnitFilter,
     >,
     active_team: Res<ActiveTeam>,
@@ -66,10 +60,6 @@ pub(super) fn handle_selected_unit_input(
                 defender: hovered_entity,
                 attack: AttackOrDefault::Attack(combat_config.get_default_attack()),
             });
-
-            let (_, _, _, mut action_points, _) = units.get_mut(selected_unit).unwrap();
-            action_points.left -= action_points.attack_action_point_cost();
-            action_points.attacks_this_round += 1;
         }
         return;
     }

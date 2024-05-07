@@ -137,7 +137,7 @@ fn display_selected_unit(
     ui.label("Abilities:".to_string());
     for (ability_entity, active_ability) in abilities {
         let belongs_to_active_team = &active_team.0 == team;
-        let is_enabled = belongs_to_active_team && active_ability.can_be_used();
+        let is_enabled = belongs_to_active_team && active_ability.can_be_used(action_points);
 
         let ability_button = ui.add_enabled(
             is_enabled,
